@@ -9,7 +9,6 @@ def generate_launch_description():
     Launches MAVLink bridge nodes with optional automatic respawn.
     """
     respawn = LaunchConfiguration("respawn")
-    respawn_delay = LaunchConfiguration("respawn_delay")
 
     return LaunchDescription(
         [
@@ -29,7 +28,7 @@ def generate_launch_description():
                 name="mavlink_bridge_publisher",
                 output="screen",
                 respawn=respawn,
-                respawn_delay=respawn_delay,
+                respawn_delay=2.0,
             ),
             Node(
                 package="mavlink_bridge",
@@ -37,7 +36,7 @@ def generate_launch_description():
                 name="output_monitor",
                 output="screen",
                 respawn=respawn,
-                respawn_delay=respawn_delay,
+                respawn_delay=2.0,
             ),
             Node(
                 package="mavlink_bridge",
@@ -45,7 +44,7 @@ def generate_launch_description():
                 name="ros2_receiver",
                 output="screen",
                 respawn=respawn,
-                respawn_delay=respawn_delay,
+                respawn_delay=2.0,
             ),
         ]
     )

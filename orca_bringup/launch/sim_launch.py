@@ -152,7 +152,10 @@ def generate_launch_description():
             package='ros_gz_bridge',
             executable='parameter_bridge',
             arguments=[
-                '/odom@nav_msgs/msg/Odometry[gz.msgs.Odometry',
+                '/model/orca4/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
+            ],
+            remappings=[
+                ('/model/orca4/odometry', '/odom'),
             ],
             output='screen'
         ),
