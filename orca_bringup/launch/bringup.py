@@ -28,7 +28,6 @@ Bring up all nodes
 Use a modified navigation_launch.py that doesn't launch velocity_smoother.
 """
 
-import math
 import os
 
 from ament_index_python.packages import get_package_share_directory
@@ -44,14 +43,11 @@ from nav2_common.launch import RewrittenYaml
 def generate_launch_description():
     orca_bringup_dir = get_package_share_directory('orca_bringup')
 
+    use_sim_time = LaunchConfiguration('use_sim_time', default='True')
     mavros_params_file = LaunchConfiguration('mavros_params_file')
     nav2_bt_file = os.path.join(orca_bringup_dir, 'behavior_trees', 'orca4_bt.xml')
     nav2_params_file = os.path.join(orca_bringup_dir, 'params', 'nav2_params.yaml')
     orca_params_file = LaunchConfiguration('orca_params_file')
-
-    # get_package_share_directory('orb_slam2_ros') will fail if orb_slam2_ros isn't installed
-    orb_voc_file = os.path.join('install', 'orb_slam2_ros', 'share', 'orb_slam2_ros',
-                                'orb_slam2', 'Vocabulary', 'ORBvoc.txt')
 
     # Rewrite to add the full path
     # The rewriter will only rewrite existing keys
@@ -95,12 +91,6 @@ def generate_launch_description():
             description='Full path to the ROS2 parameters file to use for Orca nodes',
         ),
 
-        DeclareLaunchArgument(
-            'slam',
-            default_value='True',
-            description='Launch SLAM?',
-        ),
-
         # Translate messages MAV <-> ROS
         Node(
             package='mavros',
@@ -108,47 +98,11 @@ def generate_launch_description():
             output='screen',
             # mavros_node is actually many nodes, so we can't override the name
             # name='mavros_node',
-            parameters=[mavros_params_file],
+            parameters=[mavros_params_file, {'use_sim_time': use_sim_time}],
             condition=IfCondition(LaunchConfiguration('mavros')),
         ),
 
-        # Manage overall system (start, stop, etc.)
-        Node(
-            package='orca_base',
-            executable='manager',
-            output='screen',
-            name='manager',
-            parameters=[orca_params_file],
-            remappings=[
-                # Topic is hard coded in orb_slam2_ros to /orb_slam2_stereo_node/pose
-                ('/camera_pose', '/orb_slam2_stereo_node/pose'),
-            ],
-            condition=IfCondition(LaunchConfiguration('base')),
-        ),
-
-        # Base controller and localizer; manage external nav input, publish tf2 transforms, etc.
-        Node(
-            package='orca_base',
-            executable='base_controller',
-            output='screen',
-            name='base_controller',
-            parameters=[orca_params_file],
-            remappings=[
-                # Topic is hard coded in orb_slam2_ros to /orb_slam2_stereo_node/pose
-                ('/camera_pose', '/orb_slam2_stereo_node/pose'),
-            ],
-            condition=IfCondition(LaunchConfiguration('base')),
-        ),
-
-        # Replacement for base_controller: complete the tf tree
-        ExecuteProcess(
-            cmd=['/opt/ros/humble/lib/tf2_ros/static_transform_publisher',
-                 '--frame-id', 'map',
-                 '--child-frame-id', 'slam'],
-            output='screen',
-            condition=UnlessCondition(LaunchConfiguration('base')),
-        ),
-
+        # Publish static transforms for the tf tree
         ExecuteProcess(
             cmd=['/opt/ros/humble/lib/tf2_ros/static_transform_publisher',
                  '--frame-id', 'map',
@@ -165,50 +119,12 @@ def generate_launch_description():
             condition=UnlessCondition(LaunchConfiguration('base')),
         ),
 
-        # Replacement for an URDF file: base_link->left_camera_link is static
-        ExecuteProcess(
-            cmd=['/opt/ros/humble/lib/tf2_ros/static_transform_publisher',
-                 '--x', '-0.15',
-                 '--y', '0.18',
-                 '--z', '-0.0675',
-                 '--pitch', str(math.pi/2),
-                 '--frame-id', 'base_link',
-                 '--child-frame-id', 'left_camera_link'],
-            output='screen',
-        ),
-
-        # Provide down frame to accommodate down-facing cameras
-        ExecuteProcess(
-            cmd=['/opt/ros/humble/lib/tf2_ros/static_transform_publisher',
-                 '--pitch', str(math.pi/2),
-                 '--frame-id', 'slam',
-                 '--child-frame-id', 'down'],
-            output='screen',
-        ),
-
-        # orb_slam2: build a map of 3d points, localize against the map, and publish the camera pose
-        Node(
-            package='orb_slam2_ros',
-            executable='orb_slam2_ros_stereo',
-            output='screen',
-            name='orb_slam2_stereo',
-            parameters=[orca_params_file, {
-                'voc_file': orb_voc_file,
-            }],
-            remappings=[
-                ('/image_left/image_color_rect', '/stereo_left'),
-                ('/image_right/image_color_rect', '/stereo_right'),
-                ('/camera/camera_info', '/stereo_right/camera_info'),
-            ],
-            condition=IfCondition(LaunchConfiguration('slam')),
-        ),
-
         # Include the rest of Nav2
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(orca_bringup_dir, 'launch', 'navigation_launch.py')),
             launch_arguments={
                 'namespace': '',
-                'use_sim_time': 'False',
+                'use_sim_time': use_sim_time,
                 'autostart': 'False',
                 'params_file': configured_nav2_params,
                 'use_composition': 'False',

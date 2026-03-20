@@ -49,9 +49,7 @@ def generate_launch_description():
     rosbag2_record_qos_file = os.path.join(orca_bringup_dir, 'params', 'rosbag2_record_qos.yaml')
     rviz_file = os.path.join(orca_bringup_dir, 'cfg', 'sim_launch.rviz')
     world_file = os.path.join(orca_description_dir, 'worlds', 'sand.world')
-
-    sim_left_ini = os.path.join(orca_bringup_dir, 'cfg', 'sim_left.ini')
-    sim_right_ini = os.path.join(orca_bringup_dir, 'cfg', 'sim_right.ini')
+    
     return LaunchDescription([
         DeclareLaunchArgument(
             'ardusub',
@@ -95,12 +93,6 @@ def generate_launch_description():
             description='Launch rviz?',
         ),
 
-        DeclareLaunchArgument(
-            'slam',
-            default_value='True',
-            description='Launch SLAM?',
-        ),
-
         # Bag useful topics
         ExecuteProcess(
             cmd=[
@@ -114,10 +106,6 @@ def generate_launch_description():
                 '/mavros/state',
                 '/mavros/vision_pose/pose',
                 '/model/orca4/odometry',
-                '/motion',
-                '/odom',
-                '/orb_slam2_stereo_node/pose',
-                '/orb_slam2_stereo_node/status',
                 '/pid_z',
                 '/rosout',
                 '/tf',
@@ -161,56 +149,22 @@ def generate_launch_description():
             condition=UnlessCondition(LaunchConfiguration('gzclient')),
         ),
 
-        # Get images from Gazebo Sim to ROS
-        Node(
-            package='ros_gz_image',
-            executable='image_bridge',
-            arguments=['stereo_left', 'stereo_right'],
-            output='screen',
-        ),
-
-        # Gazebo Sim doesn't publish camera info, so do that here
-        Node(
-            package='orca_base',
-            executable='camera_info_publisher',
-            name='left_info_publisher',
-            output='screen',
-            parameters=[{
-                'camera_info_url': 'file://' + sim_left_ini,
-                'camera_name': 'stereo_left',
-                'frame_id': 'stereo_left_frame',
-                'timer_period_ms': 50,
-            }],
-            remappings=[
-                ('/camera_info', '/stereo_left/camera_info'),
-            ],
-        ),
-
-        Node(
-            package='orca_base',
-            executable='camera_info_publisher',
-            name='right_info_publisher',
-            output='screen',
-            parameters=[{
-                'camera_info_url': 'file://' + sim_right_ini,
-                'camera_name': 'stereo_right',
-                'frame_id': 'stereo_right_frame',
-                'timer_period_ms': 50,
-            }],
-            remappings=[
-                ('/camera_info', '/stereo_right/camera_info'),
-            ],
-        ),
 
         # Publish ground truth pose from Ignition Gazebo
         Node(
             package='ros_gz_bridge',
             executable='parameter_bridge',
             arguments=[
-                '/model/orca4/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
+                '/odom@nav_msgs/msg/Odometry[gz.msgs.Odometry',
             ],
             output='screen'
         ),
+
+        Node(
+            package='orca_base',
+            executable='odom_to_path_node',
+            output='screen'
+        ),      
 
         # Bring up Orca and Nav2 nodes
         IncludeLaunchDescription(
@@ -221,7 +175,6 @@ def generate_launch_description():
                 'mavros_params_file': mavros_params_file,
                 'nav': LaunchConfiguration('nav'),
                 'orca_params_file': orca_params_file,
-                'slam': LaunchConfiguration('slam'),
             }.items(),
         ),
     ])

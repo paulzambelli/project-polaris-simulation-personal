@@ -12,28 +12,6 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
-ament_auto_add_executable(
-  base_controller
-  src/base_controller.cpp
-  src/underwater_motion.cpp
-)
-
-target_include_directories(base_controller PRIVATE include)
-
-ament_auto_add_executable(
-  camera_info_publisher
-  src/camera_info_publisher.cpp
-)
-
-target_include_directories(camera_info_publisher PRIVATE include)
-
-ament_auto_add_executable(
-  manager
-  src/manager.cpp
-)
-
-target_include_directories(manager PRIVATE include)
-
 # Load & run linters listed in package.xml
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
