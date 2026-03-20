@@ -68,13 +68,6 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/orca_nav2" TYPE DIRECTORY FILES
-    "/home/polaris_pz/project-polaris-simulation-personal/orca_nav2/launch"
-    "/home/polaris_pz/project-polaris-simulation-personal/orca_nav2/config"
-    )
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/polaris_pz/project-polaris-simulation-personal/orca_nav2/include/")
 endif()
 

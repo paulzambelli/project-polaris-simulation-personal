@@ -196,7 +196,7 @@ class MavlinkBridgeSender(Node):
         ros_msg.data = [msg.chan1_raw, msg.chan2_raw, msg.chan3_raw, msg.chan4_raw]
 
         self.rc_channel_publisher.publish(ros_msg)
-        self.logger.info(f"Published RC: {ros_msg.channels}")
+        self.logger.info(f"Published RC: {ros_msg.data}")
 
     def handle_battery(self, msg):
         """Process BATTERY_STATUS message and publish to ROS2"""

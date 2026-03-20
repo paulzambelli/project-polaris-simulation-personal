@@ -130,6 +130,7 @@ COPY --chown=$USER_UID:$USER_GID orca_description/package.xml src/orca4/orca_des
 COPY --chown=$USER_UID:$USER_GID orca_msgs/package.xml src/orca4/orca_msgs/
 COPY --chown=$USER_UID:$USER_GID orca_nav2/package.xml src/orca4/orca_nav2/
 COPY --chown=$USER_UID:$USER_GID orca_shared/package.xml src/orca4/orca_shared/
+COPY --chown=$USER_UID:$USER_GID comms/mavlink_bridge/package.xml src/orca4/comms/mavlink_bridge/
 
 # Run rosdep over orca4 package.xml files
 RUN rosdep update \

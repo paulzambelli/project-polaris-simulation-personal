@@ -114,7 +114,7 @@ def generate_launch_description():
             launch_arguments={
                 'namespace': '',
                 'use_sim_time': use_sim_time,
-                'autostart': 'False',
+                'autostart': 'True',
                 'params_file': configured_nav2_params,
                 'use_composition': 'False',
                 'use_respawn': 'False',
