@@ -36,18 +36,16 @@ from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchD
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import Node
 from nav2_common.launch import RewrittenYaml
 
 
 def generate_launch_description():
     orca_bringup_dir = get_package_share_directory('orca_bringup')
+    mavlink_bridge_dir = get_package_share_directory('mavlink_bridge')
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='True')
-    mavros_params_file = LaunchConfiguration('mavros_params_file')
     nav2_bt_file = os.path.join(orca_bringup_dir, 'behavior_trees', 'orca4_bt.xml')
     nav2_params_file = os.path.join(orca_bringup_dir, 'params', 'nav2_params.yaml')
-    orca_params_file = LaunchConfiguration('orca_params_file')
 
     # Rewrite to add the full path
     # The rewriter will only rewrite existing keys
@@ -68,15 +66,15 @@ def generate_launch_description():
         ),
 
         DeclareLaunchArgument(
-            'mavros',
+            'comms',
             default_value='True',
-            description='Launch mavros?',
+            description='Launch custom MAVLink bridge?',
         ),
 
         DeclareLaunchArgument(
-            'mavros_params_file',
-            default_value=os.path.join(orca_bringup_dir, 'params', 'sim_mavros_params.yaml'),
-            description='Full path to the ROS2 parameters file to use for mavros nodes',
+            'comms_respawn',
+            default_value='True',
+            description='Respawn mavlink bridge nodes?',
         ),
 
         DeclareLaunchArgument(
@@ -91,15 +89,14 @@ def generate_launch_description():
             description='Full path to the ROS2 parameters file to use for Orca nodes',
         ),
 
-        # Translate messages MAV <-> ROS
-        Node(
-            package='mavros',
-            executable='mavros_node',
-            output='screen',
-            # mavros_node is actually many nodes, so we can't override the name
-            # name='mavros_node',
-            parameters=[mavros_params_file, {'use_sim_time': use_sim_time}],
-            condition=IfCondition(LaunchConfiguration('mavros')),
+        # Launch custom MAVLink bridge for Pixhawk communications.
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(mavlink_bridge_dir, 'launch', 'mavlink_bridge.launch.py')),
+            launch_arguments={
+                'respawn': LaunchConfiguration('comms_respawn'),
+                'respawn_delay': '2.0',
+            }.items(),
+            condition=IfCondition(LaunchConfiguration('comms')),
         ),
 
         # If base controller is disabled, keep map and odom aligned.

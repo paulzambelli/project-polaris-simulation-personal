@@ -25,7 +25,7 @@
 """
 Launch a simulation.
 
-Includes Gazebo, ArduSub, RViz, mavros, all ROS nodes.
+Includes Gazebo, ArduSub, RViz, custom MAVLink bridge, and Nav2 nodes.
 """
 
 import os
@@ -44,7 +44,6 @@ def generate_launch_description():
     orca_description_dir = get_package_share_directory('orca_description')
 
     ardusub_params_file = os.path.join(orca_bringup_dir, 'cfg', 'sub.parm')
-    mavros_params_file = os.path.join(orca_bringup_dir, 'params', 'sim_mavros_params.yaml')
     orca_params_file = os.path.join(orca_bringup_dir, 'params', 'sim_orca_params.yaml')
     rosbag2_record_qos_file = os.path.join(orca_bringup_dir, 'params', 'rosbag2_record_qos.yaml')
     rviz_file = os.path.join(orca_bringup_dir, 'cfg', 'sim_launch.rviz')
@@ -76,9 +75,9 @@ def generate_launch_description():
         ),
 
         DeclareLaunchArgument(
-            'mavros',
+            'comms',
             default_value='True',
-            description='Launch mavros?',
+            description='Launch custom MAVLink bridge?',
         ),
 
         DeclareLaunchArgument(
@@ -100,11 +99,9 @@ def generate_launch_description():
                 '--qos-profile-overrides-path', rosbag2_record_qos_file,
                 '--include-hidden-topics',
                 '/cmd_vel',
-                '/mavros/local_position/pose',
-                '/mavros/rc/override',
-                '/mavros/setpoint_position/global',
-                '/mavros/state',
-                '/mavros/vision_pose/pose',
+                '/pixhawk/arm_cmd',
+                '/pixhawk/cmd_vel',
+                '/pixhawk/mode_cmd',
                 '/model/orca4/odometry',
                 '/pid_z',
                 '/rosout',
@@ -184,8 +181,7 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(os.path.join(orca_bringup_dir, 'launch', 'bringup.py')),
             launch_arguments={
                 'base': LaunchConfiguration('base'),
-                'mavros': LaunchConfiguration('mavros'),
-                'mavros_params_file': mavros_params_file,
+                'comms': LaunchConfiguration('comms'),
                 'nav': LaunchConfiguration('nav'),
                 'orca_params_file': orca_params_file,
             }.items(),

@@ -1,0 +1,238 @@
+[0.000000] (-) TimerEvent: {}
+[0.000042] (-) JobUnselected: {'identifier': 'foxglove_bridge_pkg'}
+[0.000094] (-) JobUnselected: {'identifier': 'mavlink_bridge'}
+[0.000173] (-) JobUnselected: {'identifier': 'orca_base'}
+[0.000315] (-) JobUnselected: {'identifier': 'orca_description'}
+[0.000513] (orca_nav2) JobQueued: {'identifier': 'orca_nav2', 'dependencies': OrderedDict()}
+[0.000589] (orca_bringup) JobQueued: {'identifier': 'orca_bringup', 'dependencies': OrderedDict([('mavlink_bridge', '/home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge'), ('orca_nav2', '/home/polaris_pz/project-polaris-simulation-personal/install/orca_nav2')])}
+[0.000655] (orca_nav2) JobStarted: {'identifier': 'orca_nav2'}
+[0.005001] (orca_nav2) JobProgress: {'identifier': 'orca_nav2', 'progress': 'cmake'}
+[0.005281] (orca_nav2) Command: {'cmd': ['/usr/bin/cmake', '/home/polaris_pz/project-polaris-simulation-personal/orca_nav2', '-DCMAKE_INSTALL_PREFIX=/home/polaris_pz/project-polaris-simulation-personal/install/orca_nav2'], 'cwd': '/home/polaris_pz/project-polaris-simulation-personal/build/orca_nav2', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('VSCODE_CWD', '/home/polaris_pz'), ('CURSOR_EXTENSION_HOST_ROLE', 'agent-exec'), ('VSCODE_ESM_ENTRYPOINT', 'vs/workbench/api/node/extensionHostProcess'), ('USER', 'polaris_pz'), ('LC_TIME', 'de_CH.UTF-8'), ('VSCODE_NLS_CONFIG', '{"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/usr/share/cursor/resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}'), ('CI', '1'), ('VSCODE_HANDLES_UNCAUGHT_ERRORS', 'true'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/polaris_pz'), ('CHROME_DESKTOP', 'cursor.desktop'), ('DESKTOP_SESSION', 'ubuntu'), ('VSCODE_IPC_HOOK', '/run/user/1000/vscode-68f26ee9-2.6.-main.sock'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('LC_MONETARY', 'de_CH.UTF-8'), ('CURSOR_WORKSPACE_LABEL', 'project-polaris-simulation-personal'), ('SYSTEMD_EXEC_PID', '2722'), ('NO_COLOR', '1'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('VSCODE_CRASH_REPORTER_PROCESS_TYPE', 'extensionHost'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'polaris_pz'), ('FORCE_COLOR', '0'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'polaris_pz'), ('TERM', 'dumb'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('FC_FONTATIONS', '1'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('PATH', '/home/polaris_pz/.local/bin:/home/polaris_pz/.local/bin:/home/polaris_pz/.local/bin:/opt/ros/humble/bin:/home/polaris_pz/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/Polarispz-Precision-3440:@/tmp/.ICE-unix/2529,unix/Polarispz-Precision-3440:/tmp/.ICE-unix/2529'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'de_CH.UTF-8'), ('VSCODE_PROCESS_TITLE', 'extension-host (agent-exec) project-polaris-simulation-personal [2-9]'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/1d8f9500_ad97_4ba7_b05a_f42eea0214f7'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('GDK_BACKEND', 'x11'), ('CURSOR_AGENT', '1'), ('DISPLAY', ':1'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'de_CH.UTF-8'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', ''), ('GNOME_TERMINAL_SERVICE', ':1.216'), ('CURSOR_TRACE_ID', '925c5533ee5c4f96813b9f0702dd62ff'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('CURSOR_CLI_MODE', 'local'), ('SHELL', '/bin/bash'), ('LC_NAME', 'de_CH.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('CURSOR_CLI', 'ELECTRON_RUN_AS_NODE=1 "/usr/share/cursor/bin/../cursor" "/usr/share/cursor/bin/../resources/app/out/cli.js"'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'de_CH.UTF-8'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('LC_IDENTIFICATION', 'de_CH.UTF-8'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/polaris_pz/project-polaris-simulation-personal/build/orca_nav2'), ('VSCODE_CLI', '1'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('VSCODE_CODE_CACHE_PATH', '/home/polaris_pz/.config/Cursor/CachedData/eb1c4e0702d201d1226d2a7afb25c501c2e56080'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'de_CH.UTF-8'), ('LC_PAPER', 'de_CH.UTF-8'), ('COLCON', '1'), ('_ZO_DOCTOR', '0'), ('VTE_VERSION', '6800'), ('ELECTRON_NO_ATTACH_CONSOLE', '1'), ('VSCODE_PID', '1547674'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[0.099878] (-) TimerEvent: {}
+[0.119579] (orca_nav2) StdoutLine: {'line': b'-- The C compiler identification is GNU 11.4.0\n'}
+[0.193316] (orca_nav2) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 11.4.0\n'}
+[0.199960] (-) TimerEvent: {}
+[0.202025] (orca_nav2) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[0.254560] (orca_nav2) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[0.259943] (orca_nav2) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[0.260299] (orca_nav2) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[0.260852] (orca_nav2) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[0.263538] (orca_nav2) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[0.300046] (-) TimerEvent: {}
+[0.317212] (orca_nav2) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[0.322844] (orca_nav2) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[0.323047] (orca_nav2) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[0.323325] (orca_nav2) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[0.326016] (orca_nav2) StdoutLine: {'line': b'-- Found ament_cmake_auto: 1.3.12 (/opt/ros/humble/share/ament_cmake_auto/cmake)\n'}
+[0.400124] (-) TimerEvent: {}
+[0.441633] (orca_nav2) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter \n'}
+[0.500223] (-) TimerEvent: {}
+[0.518853] (orca_nav2) StdoutLine: {'line': b'-- Found nav2_util: 1.1.20 (/opt/ros/humble/share/nav2_util/cmake)\n'}
+[0.558193] (orca_nav2) StdoutLine: {'line': b'-- Found rosidl_generator_c: 3.1.7 (/opt/ros/humble/share/rosidl_generator_c/cmake)\n'}
+[0.563032] (orca_nav2) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.7 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[0.571619] (orca_nav2) StdoutLine: {'line': b'-- Found rosidl_generator_cpp: 3.1.7 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)\n'}
+[0.585994] (orca_nav2) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[0.600309] (-) TimerEvent: {}
+[0.602234] (orca_nav2) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[0.700421] (-) TimerEvent: {}
+[0.779528] (orca_nav2) StdoutLine: {'line': b'-- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)\n'}
+[0.782444] (orca_nav2) StdoutLine: {'line': b'-- Found rmw_fastrtps_cpp: 6.2.9 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)\n'}
+[0.800534] (-) TimerEvent: {}
+[0.848338] (orca_nav2) StdoutLine: {'line': b'-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  \n'}
+[0.868331] (orca_nav2) StdoutLine: {'line': b'-- Found FastRTPS: /opt/ros/humble/include  \n'}
+[0.896816] (orca_nav2) StdoutLine: {'line': b"-- Using RMW implementation 'rmw_fastrtps_cpp' as default\n"}
+[0.900553] (-) TimerEvent: {}
+[0.906383] (orca_nav2) StdoutLine: {'line': b'-- Looking for pthread.h\n'}
+[0.954742] (orca_nav2) StdoutLine: {'line': b'-- Looking for pthread.h - found\n'}
+[0.954920] (orca_nav2) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD\n'}
+[1.000640] (-) TimerEvent: {}
+[1.004476] (orca_nav2) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success\n'}
+[1.005190] (orca_nav2) StdoutLine: {'line': b'-- Found Threads: TRUE  \n'}
+[1.100724] (-) TimerEvent: {}
+[1.101188] (orca_nav2) StdoutLine: {'line': b'-- Found eigen3_cmake_module: 0.1.1 (/opt/ros/humble/share/eigen3_cmake_module/cmake)\n'}
+[1.102527] (orca_nav2) StdoutLine: {'line': b'-- Found Eigen3: TRUE (found version "3.4.0") \n'}
+[1.102614] (orca_nav2) StdoutLine: {'line': b'-- Ensuring Eigen3 include directory is part of orocos-kdl CMake target\n'}
+[1.153483] (orca_nav2) StdoutLine: {'line': b'-- Found nav2_core: 1.1.20 (/opt/ros/humble/share/nav2_core/cmake)\n'}
+[1.200806] (-) TimerEvent: {}
+[1.300949] (-) TimerEvent: {}
+[1.401105] (-) TimerEvent: {}
+[1.501283] (-) TimerEvent: {}
+[1.601456] (-) TimerEvent: {}
+[1.660233] (orca_nav2) StdoutLine: {'line': b'-- Found ament_lint_auto: 0.12.14 (/opt/ros/humble/share/ament_lint_auto/cmake)\n'}
+[1.677614] (orca_nav2) StderrLine: {'line': b'In this package, headers install destination is set to `include` by ament_auto_package. It is recommended to install `include/orca_nav2` instead and will be the default behavior of ament_auto_package from ROS 2 Kilted Kaiju. On distributions before Kilted, ament_auto_package behaves the same way when you use USE_SCOPED_HEADER_INSTALL_DIR option.\n'}
+[1.681708] (orca_nav2) StdoutLine: {'line': b"-- Added test 'copyright' to check source files copyright and LICENSE\n"}
+[1.682794] (orca_nav2) StdoutLine: {'line': b"-- Added test 'cppcheck' to perform static code analysis on C / C++ code\n"}
+[1.684740] (orca_nav2) StdoutLine: {'line': b'-- Configured cppcheck include dirs: /home/polaris_pz/project-polaris-simulation-personal/orca_nav2/include\n'}
+[1.684823] (orca_nav2) StdoutLine: {'line': b'-- Configured cppcheck exclude dirs and/or files: \n'}
+[1.685659] (orca_nav2) StdoutLine: {'line': b"-- Added test 'cpplint' to check C / C++ code against the Google style\n"}
+[1.685741] (orca_nav2) StdoutLine: {'line': b'-- Configured cpplint exclude dirs and/or files: \n'}
+[1.686169] (orca_nav2) StdoutLine: {'line': b"-- Added test 'flake8' to check Python code syntax and style conventions\n"}
+[1.686726] (orca_nav2) StdoutLine: {'line': b"-- Added test 'lint_cmake' to check CMake code style\n"}
+[1.687226] (orca_nav2) StdoutLine: {'line': b"-- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257\n"}
+[1.688097] (orca_nav2) StdoutLine: {'line': b"-- Added test 'uncrustify' to check C / C++ code style\n"}
+[1.688159] (orca_nav2) StdoutLine: {'line': b'-- Configured uncrustify additional arguments: \n'}
+[1.688602] (orca_nav2) StdoutLine: {'line': b"-- Added test 'xmllint' to check XML markup files\n"}
+[1.691775] (orca_nav2) StdoutLine: {'line': b'-- Configuring done\n'}
+[1.701525] (-) TimerEvent: {}
+[1.801622] (-) TimerEvent: {}
+[1.901762] (-) TimerEvent: {}
+[1.932411] (orca_nav2) StdoutLine: {'line': b'-- Generating done\n'}
+[1.950977] (orca_nav2) StdoutLine: {'line': b'-- Build files have been written to: /home/polaris_pz/project-polaris-simulation-personal/build/orca_nav2\n'}
+[1.959126] (orca_nav2) CommandEnded: {'returncode': 0}
+[1.959995] (orca_nav2) JobProgress: {'identifier': 'orca_nav2', 'progress': 'build'}
+[1.960020] (orca_nav2) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/polaris_pz/project-polaris-simulation-personal/build/orca_nav2', '--', '-j16', '-l16'], 'cwd': '/home/polaris_pz/project-polaris-simulation-personal/build/orca_nav2', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('VSCODE_CWD', '/home/polaris_pz'), ('CURSOR_EXTENSION_HOST_ROLE', 'agent-exec'), ('VSCODE_ESM_ENTRYPOINT', 'vs/workbench/api/node/extensionHostProcess'), ('USER', 'polaris_pz'), ('LC_TIME', 'de_CH.UTF-8'), ('VSCODE_NLS_CONFIG', '{"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/usr/share/cursor/resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}'), ('CI', '1'), ('VSCODE_HANDLES_UNCAUGHT_ERRORS', 'true'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/polaris_pz'), ('CHROME_DESKTOP', 'cursor.desktop'), ('DESKTOP_SESSION', 'ubuntu'), ('VSCODE_IPC_HOOK', '/run/user/1000/vscode-68f26ee9-2.6.-main.sock'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('LC_MONETARY', 'de_CH.UTF-8'), ('CURSOR_WORKSPACE_LABEL', 'project-polaris-simulation-personal'), ('SYSTEMD_EXEC_PID', '2722'), ('NO_COLOR', '1'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('VSCODE_CRASH_REPORTER_PROCESS_TYPE', 'extensionHost'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'polaris_pz'), ('FORCE_COLOR', '0'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'polaris_pz'), ('TERM', 'dumb'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('FC_FONTATIONS', '1'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('PATH', '/home/polaris_pz/.local/bin:/home/polaris_pz/.local/bin:/home/polaris_pz/.local/bin:/opt/ros/humble/bin:/home/polaris_pz/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/Polarispz-Precision-3440:@/tmp/.ICE-unix/2529,unix/Polarispz-Precision-3440:/tmp/.ICE-unix/2529'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'de_CH.UTF-8'), ('VSCODE_PROCESS_TITLE', 'extension-host (agent-exec) project-polaris-simulation-personal [2-9]'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/1d8f9500_ad97_4ba7_b05a_f42eea0214f7'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('GDK_BACKEND', 'x11'), ('CURSOR_AGENT', '1'), ('DISPLAY', ':1'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('LC_TELEPHONE', 'de_CH.UTF-8'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', ''), ('GNOME_TERMINAL_SERVICE', ':1.216'), ('CURSOR_TRACE_ID', '925c5533ee5c4f96813b9f0702dd62ff'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('CURSOR_CLI_MODE', 'local'), ('SHELL', '/bin/bash'), ('LC_NAME', 'de_CH.UTF-8'), ('QT_ACCESSIBILITY', '1'), ('CURSOR_CLI', 'ELECTRON_RUN_AS_NODE=1 "/usr/share/cursor/bin/../cursor" "/usr/share/cursor/bin/../resources/app/out/cli.js"'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'de_CH.UTF-8'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('LC_IDENTIFICATION', 'de_CH.UTF-8'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/polaris_pz/project-polaris-simulation-personal/build/orca_nav2'), ('VSCODE_CLI', '1'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('VSCODE_CODE_CACHE_PATH', '/home/polaris_pz/.config/Cursor/CachedData/eb1c4e0702d201d1226d2a7afb25c501c2e56080'), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'de_CH.UTF-8'), ('LC_PAPER', 'de_CH.UTF-8'), ('COLCON', '1'), ('_ZO_DOCTOR', '0'), ('VTE_VERSION', '6800'), ('ELECTRON_NO_ATTACH_CONSOLE', '1'), ('VSCODE_PID', '1547674'), ('CMAKE_PREFIX_PATH', '/opt/ros/humble')]), 'shell': False}
+[1.995038] (orca_nav2) StdoutLine: {'line': b'[ 12%] Building CXX object CMakeFiles/pure_pursuit_controller_3d.dir/src/pure_pursuit_controller_3d.cpp.o\n'}
+[2.001858] (-) TimerEvent: {}
+[2.102010] (-) TimerEvent: {}
+[2.202172] (-) TimerEvent: {}
+[2.302347] (-) TimerEvent: {}
+[2.402518] (-) TimerEvent: {}
+[2.502625] (-) TimerEvent: {}
+[2.602772] (-) TimerEvent: {}
+[2.702917] (-) TimerEvent: {}
+[2.803065] (-) TimerEvent: {}
+[2.903242] (-) TimerEvent: {}
+[3.003420] (-) TimerEvent: {}
+[3.103609] (-) TimerEvent: {}
+[3.203759] (-) TimerEvent: {}
+[3.303940] (-) TimerEvent: {}
+[3.404104] (-) TimerEvent: {}
+[3.504278] (-) TimerEvent: {}
+[3.604457] (-) TimerEvent: {}
+[3.704570] (-) TimerEvent: {}
+[3.804716] (-) TimerEvent: {}
+[3.904863] (-) TimerEvent: {}
+[4.005007] (-) TimerEvent: {}
+[4.105180] (-) TimerEvent: {}
+[4.205355] (-) TimerEvent: {}
+[4.305535] (-) TimerEvent: {}
+[4.405682] (-) TimerEvent: {}
+[4.505826] (-) TimerEvent: {}
+[4.605971] (-) TimerEvent: {}
+[4.706115] (-) TimerEvent: {}
+[4.806317] (-) TimerEvent: {}
+[4.906493] (-) TimerEvent: {}
+[5.006618] (-) TimerEvent: {}
+[5.106760] (-) TimerEvent: {}
+[5.206903] (-) TimerEvent: {}
+[5.307052] (-) TimerEvent: {}
+[5.407195] (-) TimerEvent: {}
+[5.507370] (-) TimerEvent: {}
+[5.607548] (-) TimerEvent: {}
+[5.707688] (-) TimerEvent: {}
+[5.775058] (orca_nav2) StdoutLine: {'line': b'[ 25%] Linking CXX shared library libpure_pursuit_controller_3d.so\n'}
+[5.807772] (-) TimerEvent: {}
+[5.907912] (-) TimerEvent: {}
+[6.008052] (-) TimerEvent: {}
+[6.070524] (orca_nav2) StdoutLine: {'line': b'[ 25%] Built target pure_pursuit_controller_3d\n'}
+[6.084507] (orca_nav2) StdoutLine: {'line': b'[ 37%] Building CXX object CMakeFiles/straight_line_planner_3d.dir/src/straight_line_planner_3d.cpp.o\n'}
+[6.108168] (-) TimerEvent: {}
+[6.208348] (-) TimerEvent: {}
+[6.308517] (-) TimerEvent: {}
+[6.408695] (-) TimerEvent: {}
+[6.508867] (-) TimerEvent: {}
+[6.609041] (-) TimerEvent: {}
+[6.709216] (-) TimerEvent: {}
+[6.809391] (-) TimerEvent: {}
+[6.909570] (-) TimerEvent: {}
+[7.009713] (-) TimerEvent: {}
+[7.109856] (-) TimerEvent: {}
+[7.210000] (-) TimerEvent: {}
+[7.310142] (-) TimerEvent: {}
+[7.410284] (-) TimerEvent: {}
+[7.510461] (-) TimerEvent: {}
+[7.610650] (-) TimerEvent: {}
+[7.710829] (-) TimerEvent: {}
+[7.810976] (-) TimerEvent: {}
+[7.911157] (-) TimerEvent: {}
+[8.011337] (-) TimerEvent: {}
+[8.111512] (-) TimerEvent: {}
+[8.211694] (-) TimerEvent: {}
+[8.311839] (-) TimerEvent: {}
+[8.411982] (-) TimerEvent: {}
+[8.512125] (-) TimerEvent: {}
+[8.612301] (-) TimerEvent: {}
+[8.712478] (-) TimerEvent: {}
+[8.812614] (-) TimerEvent: {}
+[8.912758] (-) TimerEvent: {}
+[9.012944] (-) TimerEvent: {}
+[9.113124] (-) TimerEvent: {}
+[9.213304] (-) TimerEvent: {}
+[9.313481] (-) TimerEvent: {}
+[9.413622] (-) TimerEvent: {}
+[9.513767] (-) TimerEvent: {}
+[9.613937] (-) TimerEvent: {}
+[9.675821] (orca_nav2) StdoutLine: {'line': b'[ 50%] Linking CXX shared library libstraight_line_planner_3d.so\n'}
+[9.714052] (-) TimerEvent: {}
+[9.814228] (-) TimerEvent: {}
+[9.914371] (-) TimerEvent: {}
+[9.919552] (orca_nav2) StdoutLine: {'line': b'[ 50%] Built target straight_line_planner_3d\n'}
+[9.933739] (orca_nav2) StdoutLine: {'line': b'[ 62%] Building CXX object CMakeFiles/goal_checker_3d.dir/src/goal_checker_3d.cpp.o\n'}
+[10.014486] (-) TimerEvent: {}
+[10.114663] (-) TimerEvent: {}
+[10.214849] (-) TimerEvent: {}
+[10.315010] (-) TimerEvent: {}
+[10.415151] (-) TimerEvent: {}
+[10.515326] (-) TimerEvent: {}
+[10.615500] (-) TimerEvent: {}
+[10.715679] (-) TimerEvent: {}
+[10.815822] (-) TimerEvent: {}
+[10.915997] (-) TimerEvent: {}
+[11.016144] (-) TimerEvent: {}
+[11.116321] (-) TimerEvent: {}
+[11.216499] (-) TimerEvent: {}
+[11.316700] (-) TimerEvent: {}
+[11.416879] (-) TimerEvent: {}
+[11.517056] (-) TimerEvent: {}
+[11.617236] (-) TimerEvent: {}
+[11.717419] (-) TimerEvent: {}
+[11.817570] (-) TimerEvent: {}
+[11.917746] (-) TimerEvent: {}
+[12.017930] (-) TimerEvent: {}
+[12.118106] (-) TimerEvent: {}
+[12.218289] (-) TimerEvent: {}
+[12.318463] (-) TimerEvent: {}
+[12.418639] (-) TimerEvent: {}
+[12.518814] (-) TimerEvent: {}
+[12.618994] (-) TimerEvent: {}
+[12.719172] (-) TimerEvent: {}
+[12.819346] (-) TimerEvent: {}
+[12.919523] (-) TimerEvent: {}
+[13.019707] (-) TimerEvent: {}
+[13.119885] (-) TimerEvent: {}
+[13.220058] (-) TimerEvent: {}
+[13.320238] (-) TimerEvent: {}
+[13.420416] (-) TimerEvent: {}
+[13.463378] (orca_nav2) StdoutLine: {'line': b'[ 75%] Linking CXX shared library libgoal_checker_3d.so\n'}
+[13.520538] (-) TimerEvent: {}
+[13.620727] (-) TimerEvent: {}
+[13.716595] (orca_nav2) StdoutLine: {'line': b'[ 75%] Built target goal_checker_3d\n'}
+[13.720788] (-) TimerEvent: {}
+[13.730758] (orca_nav2) StdoutLine: {'line': b'[ 87%] Building CXX object CMakeFiles/progress_checker_3d.dir/src/progress_checker_3d.cpp.o\n'}
+[13.820879] (-) TimerEvent: {}
+[13.921050] (-) TimerEvent: {}
+[14.021219] (-) TimerEvent: {}
+[14.121392] (-) TimerEvent: {}
+[14.221541] (-) TimerEvent: {}
+[14.321714] (-) TimerEvent: {}
+[14.421890] (-) TimerEvent: {}
+[14.522063] (-) TimerEvent: {}
+[14.622202] (-) TimerEvent: {}
+[14.722345] (-) TimerEvent: {}
+[14.822490] (-) TimerEvent: {}
+[14.922669] (-) TimerEvent: {}
+[15.022850] (-) TimerEvent: {}
+[15.122997] (-) TimerEvent: {}
+[15.223147] (-) TimerEvent: {}
+[15.323294] (-) TimerEvent: {}
+[15.423437] (-) TimerEvent: {}
+[15.523568] (-) TimerEvent: {}
+[15.623710] (-) TimerEvent: {}
+[15.723884] (-) TimerEvent: {}
+[15.824029] (-) TimerEvent: {}
+[15.924168] (-) TimerEvent: {}
+[15.998876] (orca_nav2) StdoutLine: {'line': b'[100%] Linking CXX shared library libprogress_checker_3d.so\n'}
+[16.024283] (-) TimerEvent: {}
+[16.124425] (-) TimerEvent: {}
+[16.224600] (-) TimerEvent: {}
+[16.257470] (orca_nav2) StdoutLine: {'line': b'[100%] Built target progress_checker_3d\n'}

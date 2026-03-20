@@ -4,12 +4,7 @@ import logging, os
 from rclpy.node import Node
 from pymavlink import mavutil
 from datetime import datetime
-from std_msgs.msg import Int16MultiArray
-from mavros_msgs.msg import (
-    State,  # HEARTBEAT
-    RCIn,  # RC_CHANNELS
-    ManualControl
-)
+from std_msgs.msg import Int16MultiArray, String
 from sensor_msgs.msg import (
     Imu,  # ATTITUDE
     BatteryState,  # BATTERY_STATUS
@@ -81,13 +76,11 @@ class MavlinkBridgeSender(Node):
         self.port.wait_heartbeat()
         self.logger.info(f"Heartbeat received from system {self.port.target_system}")
 
-        self.heartbeat_publisher = self.create_publisher(State, "/pixhawk/heartbeat", 10)
+        self.heartbeat_publisher = self.create_publisher(String, "/pixhawk/heartbeat", 10)
 
         self.attitude_publisher = self.create_publisher(Imu, "/pixhawk/attitude", 10)
 
-        self.rc_channel_publisher = self.create_publisher(
-            RCIn, "/pixhawk/rc_channels", 10
-        )
+        self.rc_channel_publisher = self.create_publisher(Int16MultiArray, "/pixhawk/rc_channels", 10)
 
         self.battery_publisher = self.create_publisher(
             BatteryState, "/pixhawk/battery", 10
@@ -157,23 +150,17 @@ class MavlinkBridgeSender(Node):
         if msg.autopilot == mavutil.mavlink.MAV_AUTOPILOT_INVALID:
             return  # Skip non-autopilot heartbeats
 
-        ros_msg = State()
-        # MAVLink system status (uint8)
-        ros_msg.system_status = msg.system_status
-
-        # Map custom_mode integer to human-readable flight mode name
-        # Using ArduSub mapping (change to mode_mapping_acm for ArduCopter, etc.)
         mode_mapping = mavutil.mode_mapping_sub
-        ros_msg.mode = mode_mapping.get(
+        mode = mode_mapping.get(
             msg.custom_mode, f"UNKNOWN({msg.custom_mode})"
-        )  # gets the name equivalent of the msg.custom_mode int using mode_mapping.get(). second entry is if its unknown
+        )
+        armed = bool(msg.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED)
 
-        # Based on the bitmask definition in mavutil
-        ros_msg.armed = bool(msg.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED)
-
+        ros_msg = String()
+        ros_msg.data = f"mode={mode};armed={int(armed)};system_status={msg.system_status}"
         self.heartbeat_publisher.publish(ros_msg)
         self.logger.info(
-            f"Published Heartbeat: Status={ros_msg.system_status}, Mode={ros_msg.mode}, Armed={ros_msg.armed}"
+            f"Published Heartbeat: Status={msg.system_status}, Mode={mode}, Armed={armed}"
         )
 
     def handle_attitude(self, msg):
@@ -205,12 +192,11 @@ class MavlinkBridgeSender(Node):
 
     def handle_rc_channels(self, msg):
         """Process RC_CHANNELS message and publish to ROS2"""
-        ros_msg = RCIn()
-        # First 4 channels
-        ros_msg.channels = [msg.chan1_raw, msg.chan2_raw, msg.chan3_raw, msg.chan4_raw]
+        ros_msg = Int16MultiArray()
+        ros_msg.data = [msg.chan1_raw, msg.chan2_raw, msg.chan3_raw, msg.chan4_raw]
 
         self.rc_channel_publisher.publish(ros_msg)
-        self.logger.info(f"Published RC: {ros_msg.channels}")
+        self.logger.info(f"Published RC: {ros_msg.data}")
 
     def handle_battery(self, msg):
         """Process BATTERY_STATUS message and publish to ROS2"""

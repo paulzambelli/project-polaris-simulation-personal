@@ -1,0 +1,66 @@
+[0.005s] Invoking command in '/home/polaris_pz/project-polaris-simulation-personal/build/orca_nav2': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/polaris_pz/project-polaris-simulation-personal/orca_nav2 -DCMAKE_INSTALL_PREFIX=/home/polaris_pz/project-polaris-simulation-personal/install/orca_nav2
+[0.119s] -- The C compiler identification is GNU 11.4.0
+[0.193s] -- The CXX compiler identification is GNU 11.4.0
+[0.201s] -- Detecting C compiler ABI info
+[0.254s] -- Detecting C compiler ABI info - done
+[0.259s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.260s] -- Detecting C compile features
+[0.260s] -- Detecting C compile features - done
+[0.263s] -- Detecting CXX compiler ABI info
+[0.317s] -- Detecting CXX compiler ABI info - done
+[0.322s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.322s] -- Detecting CXX compile features
+[0.323s] -- Detecting CXX compile features - done
+[0.325s] -- Found ament_cmake_auto: 1.3.12 (/opt/ros/humble/share/ament_cmake_auto/cmake)
+[0.441s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.518s] -- Found nav2_util: 1.1.20 (/opt/ros/humble/share/nav2_util/cmake)
+[0.558s] -- Found rosidl_generator_c: 3.1.7 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[0.562s] -- Found rosidl_adapter: 3.1.7 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.571s] -- Found rosidl_generator_cpp: 3.1.7 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[0.585s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.602s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.779s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[0.782s] -- Found rmw_fastrtps_cpp: 6.2.9 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[0.848s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[0.868s] -- Found FastRTPS: /opt/ros/humble/include  
+[0.896s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[0.906s] -- Looking for pthread.h
+[0.954s] -- Looking for pthread.h - found
+[0.954s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[1.004s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[1.005s] -- Found Threads: TRUE  
+[1.101s] -- Found eigen3_cmake_module: 0.1.1 (/opt/ros/humble/share/eigen3_cmake_module/cmake)
+[1.102s] -- Found Eigen3: TRUE (found version "3.4.0") 
+[1.102s] -- Ensuring Eigen3 include directory is part of orocos-kdl CMake target
+[1.153s] -- Found nav2_core: 1.1.20 (/opt/ros/humble/share/nav2_core/cmake)
+[1.660s] -- Found ament_lint_auto: 0.12.14 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[1.677s] In this package, headers install destination is set to `include` by ament_auto_package. It is recommended to install `include/orca_nav2` instead and will be the default behavior of ament_auto_package from ROS 2 Kilted Kaiju. On distributions before Kilted, ament_auto_package behaves the same way when you use USE_SCOPED_HEADER_INSTALL_DIR option.
+[1.681s] -- Added test 'copyright' to check source files copyright and LICENSE
+[1.682s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[1.684s] -- Configured cppcheck include dirs: /home/polaris_pz/project-polaris-simulation-personal/orca_nav2/include
+[1.684s] -- Configured cppcheck exclude dirs and/or files: 
+[1.685s] -- Added test 'cpplint' to check C / C++ code against the Google style
+[1.685s] -- Configured cpplint exclude dirs and/or files: 
+[1.686s] -- Added test 'flake8' to check Python code syntax and style conventions
+[1.686s] -- Added test 'lint_cmake' to check CMake code style
+[1.687s] -- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+[1.687s] -- Added test 'uncrustify' to check C / C++ code style
+[1.688s] -- Configured uncrustify additional arguments: 
+[1.688s] -- Added test 'xmllint' to check XML markup files
+[1.691s] -- Configuring done
+[1.932s] -- Generating done
+[1.950s] -- Build files have been written to: /home/polaris_pz/project-polaris-simulation-personal/build/orca_nav2
+[1.959s] Invoked command in '/home/polaris_pz/project-polaris-simulation-personal/build/orca_nav2' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/polaris_pz/project-polaris-simulation-personal/orca_nav2 -DCMAKE_INSTALL_PREFIX=/home/polaris_pz/project-polaris-simulation-personal/install/orca_nav2
+[1.960s] Invoking command in '/home/polaris_pz/project-polaris-simulation-personal/build/orca_nav2': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/polaris_pz/project-polaris-simulation-personal/build/orca_nav2 -- -j16 -l16
+[1.994s] [ 12%] Building CXX object CMakeFiles/pure_pursuit_controller_3d.dir/src/pure_pursuit_controller_3d.cpp.o
+[5.774s] [ 25%] Linking CXX shared library libpure_pursuit_controller_3d.so
+[6.070s] [ 25%] Built target pure_pursuit_controller_3d
+[6.084s] [ 37%] Building CXX object CMakeFiles/straight_line_planner_3d.dir/src/straight_line_planner_3d.cpp.o
+[9.675s] [ 50%] Linking CXX shared library libstraight_line_planner_3d.so
+[9.919s] [ 50%] Built target straight_line_planner_3d
+[9.933s] [ 62%] Building CXX object CMakeFiles/goal_checker_3d.dir/src/goal_checker_3d.cpp.o
+[13.463s] [ 75%] Linking CXX shared library libgoal_checker_3d.so
+[13.716s] [ 75%] Built target goal_checker_3d
+[13.730s] [ 87%] Building CXX object CMakeFiles/progress_checker_3d.dir/src/progress_checker_3d.cpp.o
+[15.998s] [100%] Linking CXX shared library libprogress_checker_3d.so
+[16.257s] [100%] Built target progress_checker_3d

@@ -1,0 +1,47 @@
+[0.460s] Invoking command in '/home/polaris_pz/project-polaris-simulation-personal/comms/mavlink_bridge': PYTHONPATH=/home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/mavlink_bridge build --build-base /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/build install --record /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/install.log --single-version-externally-managed install_data
+[0.640s] running egg_info
+[0.641s] creating ../../build/mavlink_bridge/mavlink_bridge.egg-info
+[0.641s] writing ../../build/mavlink_bridge/mavlink_bridge.egg-info/PKG-INFO
+[0.641s] writing dependency_links to ../../build/mavlink_bridge/mavlink_bridge.egg-info/dependency_links.txt
+[0.641s] writing entry points to ../../build/mavlink_bridge/mavlink_bridge.egg-info/entry_points.txt
+[0.641s] writing requirements to ../../build/mavlink_bridge/mavlink_bridge.egg-info/requires.txt
+[0.641s] writing top-level names to ../../build/mavlink_bridge/mavlink_bridge.egg-info/top_level.txt
+[0.642s] writing manifest file '../../build/mavlink_bridge/mavlink_bridge.egg-info/SOURCES.txt'
+[0.642s] reading manifest file '../../build/mavlink_bridge/mavlink_bridge.egg-info/SOURCES.txt'
+[0.643s] writing manifest file '../../build/mavlink_bridge/mavlink_bridge.egg-info/SOURCES.txt'
+[0.643s] running build
+[0.643s] running build_py
+[0.643s] creating /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/build
+[0.643s] creating /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/build/lib
+[0.643s] creating /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/build/lib/mavlink_bridge
+[0.643s] copying mavlink_bridge/__init__.py -> /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/build/lib/mavlink_bridge
+[0.643s] copying mavlink_bridge/output_monitor.py -> /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/build/lib/mavlink_bridge
+[0.644s] copying mavlink_bridge/mavlink_publisher.py -> /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/build/lib/mavlink_bridge
+[0.644s] copying mavlink_bridge/ros2_receiver.py -> /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/build/lib/mavlink_bridge
+[0.644s] running install
+[0.644s] running install_lib
+[0.644s] creating /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/python3.10/site-packages/mavlink_bridge
+[0.644s] copying /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/build/lib/mavlink_bridge/__init__.py -> /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/python3.10/site-packages/mavlink_bridge
+[0.644s] copying /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/build/lib/mavlink_bridge/output_monitor.py -> /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/python3.10/site-packages/mavlink_bridge
+[0.645s] copying /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/build/lib/mavlink_bridge/mavlink_publisher.py -> /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/python3.10/site-packages/mavlink_bridge
+[0.645s] copying /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/build/lib/mavlink_bridge/ros2_receiver.py -> /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/python3.10/site-packages/mavlink_bridge
+[0.645s] byte-compiling /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/python3.10/site-packages/mavlink_bridge/__init__.py to __init__.cpython-310.pyc
+[0.645s] byte-compiling /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/python3.10/site-packages/mavlink_bridge/output_monitor.py to output_monitor.cpython-310.pyc
+[0.646s] byte-compiling /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/python3.10/site-packages/mavlink_bridge/mavlink_publisher.py to mavlink_publisher.cpython-310.pyc
+[0.647s] byte-compiling /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/python3.10/site-packages/mavlink_bridge/ros2_receiver.py to ros2_receiver.cpython-310.pyc
+[0.648s] running install_data
+[0.648s] creating /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/share/ament_index
+[0.648s] creating /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/share/ament_index/resource_index
+[0.648s] creating /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/share/ament_index/resource_index/packages
+[0.648s] copying resource/mavlink_bridge -> /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/share/ament_index/resource_index/packages
+[0.648s] copying package.xml -> /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/share/mavlink_bridge
+[0.648s] creating /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/share/mavlink_bridge/launch
+[0.648s] copying launch/mavlink_bridge.launch.py -> /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/share/mavlink_bridge/launch
+[0.648s] running install_egg_info
+[0.649s] Copying ../../build/mavlink_bridge/mavlink_bridge.egg-info to /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/python3.10/site-packages/mavlink_bridge-0.0.0-py3.10.egg-info
+[0.650s] running install_scripts
+[0.664s] Installing mavlink_publisher script to /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/mavlink_bridge
+[0.664s] Installing output_monitor script to /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/mavlink_bridge
+[0.664s] Installing ros2_receiver script to /home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/mavlink_bridge
+[0.664s] writing list of installed files to '/home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/install.log'
+[0.680s] Invoked command in '/home/polaris_pz/project-polaris-simulation-personal/comms/mavlink_bridge' returned '0': PYTHONPATH=/home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/polaris_pz/project-polaris-simulation-personal/install/mavlink_bridge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/mavlink_bridge build --build-base /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/build install --record /home/polaris_pz/project-polaris-simulation-personal/build/mavlink_bridge/install.log --single-version-externally-managed install_data

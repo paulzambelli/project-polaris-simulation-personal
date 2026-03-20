@@ -47,7 +47,6 @@ def generate_launch_description():
 
     # Don't launch velocity_smoother
     lifecycle_nodes = ['controller_server',
-                       'smoother_server',
                        'planner_server',
                        'behavior_server',
                        'bt_navigator',
@@ -61,6 +60,7 @@ def generate_launch_description():
     #              https://github.com/ros2/launch_ros/issues/56
     remappings = [('/tf', 'tf'),
                   ('/tf_static', 'tf_static')]
+    controller_remappings = remappings + [('/cmd_vel', '/pixhawk/cmd_vel')]
 
     # Create our own temporary YAML files that include substitutions
     param_substitutions = {
@@ -122,17 +122,7 @@ def generate_launch_description():
                 respawn_delay=2.0,
                 parameters=[configured_params],
                 arguments=['--ros-args', '--log-level', log_level],
-                remappings=remappings),
-            Node(
-                package='nav2_smoother',
-                executable='smoother_server',
-                name='smoother_server',
-                output='screen',
-                respawn=use_respawn,
-                respawn_delay=2.0,
-                parameters=[configured_params],
-                arguments=['--ros-args', '--log-level', log_level],
-                remappings=remappings),
+                remappings=controller_remappings),
             Node(
                 package='nav2_planner',
                 executable='planner_server',
@@ -194,13 +184,7 @@ def generate_launch_description():
                 plugin='nav2_controller::ControllerServer',
                 name='controller_server',
                 parameters=[configured_params],
-                remappings=remappings),
-            ComposableNode(
-                package='nav2_smoother',
-                plugin='nav2_smoother::SmootherServer',
-                name='smoother_server',
-                parameters=[configured_params],
-                remappings=remappings),
+                remappings=controller_remappings),
             ComposableNode(
                 package='nav2_planner',
                 plugin='nav2_planner::PlannerServer',
