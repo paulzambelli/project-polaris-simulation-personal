@@ -391,5 +391,16 @@ class MavlinkBridgeReceiver(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = MavlinkBridgeReceiver()
-    rclpy.spin(node)  # Keeps the node running and processing callbacks
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)  # Keeps the node running and processing callbacks
+    except KeyboardInterrupt:
+        node.get_logger().info("KeyboardInterrupt received, shutting down mavlink_bridge_receiver")
+    finally:
+        try:
+            if hasattr(node, "port") and node.port is not None:
+                node.port.close()
+        except Exception as exc:
+            node.get_logger().warning(f"Failed to close MAVLink port cleanly: {exc}")
+        node.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()

@@ -118,9 +118,14 @@ class OutputMonitor(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = OutputMonitor()
-    rclpy.spin(node)  # keeps the node running
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)  # keeps the node running
+    except KeyboardInterrupt:
+        node.get_logger().info("KeyboardInterrupt received, shutting down output_monitor")
+    finally:
+        node.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == "__main__":
