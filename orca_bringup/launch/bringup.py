@@ -49,11 +49,13 @@ def generate_launch_description():
 
     # Rewrite to add the full path
     # The rewriter will only rewrite existing keys
+    param_sub = {
+        'use_sim_time': use_sim_time,
+        'default_nav_to_pose_bt_xml': nav2_bt_file
+    }
     configured_nav2_params = RewrittenYaml(
         source_file=nav2_params_file,
-        param_rewrites={
-            'default_nav_to_pose_bt_xml': nav2_bt_file,
-        },
+        param_rewrites=param_sub,
         convert_types=True)
 
     return LaunchDescription([
@@ -95,6 +97,7 @@ def generate_launch_description():
             launch_arguments={
                 'respawn': LaunchConfiguration('comms_respawn'),
                 'respawn_delay': '2.0',
+                'use_sim_time': use_sim_time,
             }.items(),
             condition=IfCondition(LaunchConfiguration('comms')),
         ),

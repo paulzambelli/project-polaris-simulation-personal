@@ -43,6 +43,8 @@ def generate_launch_description():
     orca_bringup_dir = get_package_share_directory('orca_bringup')
     orca_description_dir = get_package_share_directory('orca_description')
 
+    use_sim_time = LaunchConfiguration('use_sim_time', default='True')
+
     ardusub_params_file = os.path.join(orca_bringup_dir, 'cfg', 'sub.parm')
     orca_params_file = os.path.join(orca_bringup_dir, 'params', 'sim_orca_params.yaml')
     rosbag2_record_qos_file = os.path.join(orca_bringup_dir, 'params', 'rosbag2_record_qos.yaml')
@@ -174,6 +176,7 @@ def generate_launch_description():
                 'odom_topic': '/odom',
                 'parent_frame_id': 'odom',
                 'child_frame_id': 'base_link',
+                'use_sim_time': use_sim_time,
             }],
             output='screen',
             condition=UnlessCondition(LaunchConfiguration('base')),
@@ -186,6 +189,7 @@ def generate_launch_description():
                 'base': LaunchConfiguration('base'),
                 'comms': LaunchConfiguration('comms'),
                 'nav': LaunchConfiguration('nav'),
+                'use_sim_time': use_sim_time,
                 'orca_params_file': orca_params_file,
             }.items(),
         ),
