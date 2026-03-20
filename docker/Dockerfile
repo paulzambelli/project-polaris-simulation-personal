@@ -132,13 +132,10 @@ COPY --chown=$USER_UID:$USER_GID comms/mavlink_bridge/package.xml src/orca4/comm
 
 # Run rosdep over orca4 package.xml files
 RUN rosdep update \
-  && rosdep install -y --from-paths . --ignore-src
+  && rosdep install -y --from-paths . --ignore-src --skip-keys="pymavlink"
 
-# MAVROS depends on GeographicLib, and GeographicLib needs some datasets
-RUN [ "/bin/bash" , "-c" , "\
-  wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh \
-  && chmod +x install_geographiclib_datasets.sh \
-  && sudo ./install_geographiclib_datasets.sh" ]
+# Install pymavlink manually
+RUN pip3 install pymavlink
 
 # Copy everything
 COPY --chown=$USER_UID:$USER_GID . src/orca4
