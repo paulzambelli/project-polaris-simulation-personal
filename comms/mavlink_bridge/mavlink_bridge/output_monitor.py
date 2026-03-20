@@ -9,18 +9,12 @@ from sensor_msgs.msg import (
 )
 from geometry_msgs.msg import Twist # Needs to be adapted for sending cmd_vel
 
-try:
-    from config_pkg.constants import Logs, Comms  # type: ignore
-    LOG_DIR = Logs.LOG_DIR
-    SUB_QOS_DEPTH = Comms.SUB_QOS_DEPTH
-    MAVLINK_RECEIVER_URL = Comms.SERIAL_PORT1
-    MAVLINK_RECEIVER_BAUD = Comms.SERIAL1_BAUD_RATE
-except Exception:
-    # Standalone defaults for simulation / docker runtime.
-    LOG_DIR = "~/polaris_logs"
-    SUB_QOS_DEPTH = 10
-    MAVLINK_RECEIVER_URL = "tcp:127.0.0.1:5760"
-    MAVLINK_RECEIVER_BAUD = 57600
+
+# Standalone defaults for simulation / docker runtime.
+LOG_DIR = "~/polaris_logs"
+SUB_QOS_DEPTH = 10
+MAVLINK_RECEIVER_URL = "tcp:127.0.0.1:5760"
+MAVLINK_RECEIVER_BAUD = 57600
 
 
 class OutputMonitor(Node):
@@ -42,7 +36,7 @@ class OutputMonitor(Node):
 
         # Initialize state variables
         self.mode = "UNKNOWN"
-        self.armed = True
+        self.armed = False
         self.system_status = "UNKNOWN"
         self.roll = 0.0
         self.pitch = 0.0
