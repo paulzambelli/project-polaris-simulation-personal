@@ -65,7 +65,7 @@ def generate_launch_description():
 
         DeclareLaunchArgument(
             'base',
-            default_value='True',
+            default_value='False',
             description='Launch base controller?',
         ),
 
@@ -164,7 +164,20 @@ def generate_launch_description():
             package='orca_base',
             executable='odom_to_path_node',
             output='screen'
-        ),      
+        ),
+
+        # In sim-only mode, publish odom -> base_link from Gazebo odometry.
+        Node(
+            package='orca_bringup',
+            executable='odom_to_tf.py',
+            parameters=[{
+                'odom_topic': '/odom',
+                'parent_frame_id': 'odom',
+                'child_frame_id': 'base_link',
+            }],
+            output='screen',
+            condition=UnlessCondition(LaunchConfiguration('base')),
+        ),
 
         # Bring up Orca and Nav2 nodes
         IncludeLaunchDescription(

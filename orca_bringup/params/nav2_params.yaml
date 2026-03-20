@@ -61,19 +61,19 @@ controller_server:
 
     # Progress checker parameters
     progress_checker:
-      plugin: "orca_nav2::ProgressChecker3D"
+      plugin: "orca_nav2/ProgressChecker3D"
       radius: 0.5
       time_allowance: 10.0
 
     # Goal checker parameters
     goal_checker:
-      plugin: "orca_nav2::GoalChecker3D"
+      plugin: "orca_nav2/GoalChecker3D"
       xy_goal_tolerance: 0.8
       z_goal_tolerance: 0.5
 
     # Controller parameters
     FollowPath:
-      plugin: "orca_nav2::PurePursuitController3D"
+      plugin: "orca_nav2/PurePursuitController3D"
       lookahead_dist: 1.0
       transform_tolerance: 1.0
       goal_tolerance: 0.2

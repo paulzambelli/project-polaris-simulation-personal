@@ -102,19 +102,11 @@ def generate_launch_description():
             condition=IfCondition(LaunchConfiguration('mavros')),
         ),
 
-        # Publish static transforms for the tf tree
+        # If base controller is disabled, keep map and odom aligned.
         ExecuteProcess(
             cmd=['/opt/ros/humble/lib/tf2_ros/static_transform_publisher',
                  '--frame-id', 'map',
                  '--child-frame-id', 'odom'],
-            output='screen',
-            condition=UnlessCondition(LaunchConfiguration('base')),
-        ),
-
-        ExecuteProcess(
-            cmd=['/opt/ros/humble/lib/tf2_ros/static_transform_publisher',
-                 '--frame-id', 'odom',
-                 '--child-frame-id', 'base_link'],
             output='screen',
             condition=UnlessCondition(LaunchConfiguration('base')),
         ),
