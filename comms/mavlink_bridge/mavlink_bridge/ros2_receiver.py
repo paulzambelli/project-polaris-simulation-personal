@@ -2,7 +2,6 @@ import rclpy
 from rclpy.node import Node
 import logging, os
 from datetime import datetime
-from config_pkg.constants import Logs, Comms
 
 os.environ["MAVLINK20"] = "1"
 from pymavlink import mavutil
@@ -12,7 +11,20 @@ from std_msgs.msg import String, Bool, Int16MultiArray
 from geometry_msgs.msg import Twist # Needs to be adapted for sending cmd_vel
 
 
-log_dir = os.path.expanduser(Logs.LOG_DIR)
+try:
+    from config_pkg.constants import Logs, Comms  # type: ignore
+    LOG_DIR = Logs.LOG_DIR
+    SUB_QOS_DEPTH = Comms.SUB_QOS_DEPTH
+    MAVLINK_RECEIVER_URL = Comms.SERIAL_PORT1
+    MAVLINK_RECEIVER_BAUD = Comms.SERIAL1_BAUD_RATE
+except Exception:
+    # Standalone defaults for simulation / docker runtime.
+    LOG_DIR = "~/polaris_logs"
+    SUB_QOS_DEPTH = 10
+    MAVLINK_RECEIVER_URL = "tcp:127.0.0.1:5760"
+    MAVLINK_RECEIVER_BAUD = 57600
+
+log_dir = os.path.expanduser(LOG_DIR)
 os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, f"ros2_receiver_{datetime.now():%Y%m%d_%H%M%S}.log")
 
@@ -47,8 +59,10 @@ class MavlinkBridgeReceiver(Node):
         )
 
         # configures serial port the pixhawk is connected to and the baud rate
+        mavlink_url = os.getenv("MAVLINK_RECEIVER_URL", MAVLINK_RECEIVER_URL)
+        mavlink_baud = int(os.getenv("MAVLINK_RECEIVER_BAUD", str(MAVLINK_RECEIVER_BAUD)))
         self.port = mavutil.mavlink_connection(
-            Comms.SERIAL_PORT1, baud=Comms.SERIAL1_BAUD_RATE
+            mavlink_url, baud=mavlink_baud
         )  # For sending commands to Pixhawk
         # self.port_in = mavutil.mavlink_connection(
         #     "/dev/ttyTHS1", baud=57600
@@ -65,30 +79,30 @@ class MavlinkBridgeReceiver(Node):
             Int16MultiArray,
             "/pixhawk/rc_override",
             self.rc_override_cb,
-            Comms.SUB_QOS_DEPTH,
+            SUB_QOS_DEPTH,
         )
 
         self.manual_control_subscriber = self.create_subscription(
             Int16MultiArray,
             "/pixhawk/manual_control",
             self.manual_control_cb,
-            Comms.SUB_QOS_DEPTH,
+            SUB_QOS_DEPTH,
         )
 
         self.guided_setpoint_subscriber = self.create_subscription(
             Twist, # Depending on the msg type from imports
             "/pixhawk/cmd_vel",
             self.cmd_vel_cb,
-            Comms.SUB_QOS_DEPTH,
+            SUB_QOS_DEPTH,
         )
 
         # subscribe to the pixhawk/mode_cmd topic and calls mode_selection_cb
         self.mode_selection_subscriber = self.create_subscription(
-            String, "/pixhawk/mode_cmd", self.mode_selection_cb, Comms.SUB_QOS_DEPTH
+            String, "/pixhawk/mode_cmd", self.mode_selection_cb, SUB_QOS_DEPTH
         )
 
         self.arm_disarm_subscriber = self.create_subscription(
-            Bool, "/pixhawk/arm_cmd", self.arm_disarm_cb, Comms.SUB_QOS_DEPTH
+            Bool, "/pixhawk/arm_cmd", self.arm_disarm_cb, SUB_QOS_DEPTH
         )
 
         self.get_logger().info("MavlinkBridgeReceiver: Node has been initialized")

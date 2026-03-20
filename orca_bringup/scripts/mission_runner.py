@@ -131,6 +131,7 @@ def send_goal(node, action_client, send_goal_msg) -> SendGoalResult:
 def main():
     node = None
     follow_waypoints = None
+    mode_pub = None
 
     rclpy.init()
 
@@ -147,11 +148,18 @@ def main():
         print('>>> Executing mission <<<')
         send_goal(node, follow_waypoints, delay_loop)
 
-        print('>>> Setting Pixhawk mode to MANUAL <<<')
-        mode_pub.publish(String(data='MANUAL'))
-        rclpy.spin_once(node, timeout_sec=0.2)
+        if rclpy.ok():
+            print('>>> Setting Pixhawk mode to MANUAL <<<')
+            mode_pub.publish(String(data='MANUAL'))
+            rclpy.spin_once(node, timeout_sec=0.2)
 
         print('>>> Mission complete <<<')
+
+    except KeyboardInterrupt:
+        if mode_pub is not None and rclpy.ok():
+            print('>>> Interrupted, setting Pixhawk mode to MANUAL <<<')
+            mode_pub.publish(String(data='MANUAL'))
+            rclpy.spin_once(node, timeout_sec=0.2)
 
     finally:
         if follow_waypoints is not None:
