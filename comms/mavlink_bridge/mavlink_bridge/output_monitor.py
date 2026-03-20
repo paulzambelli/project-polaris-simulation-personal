@@ -7,6 +7,20 @@ from sensor_msgs.msg import (
     BatteryState,  # BATTERY_STATUS
     FluidPressure,  # SCALED_PRESSURE (depth)
 )
+from geometry_msgs.msg import Twist # Needs to be adapted for sending cmd_vel
+
+try:
+    from config_pkg.constants import Logs, Comms  # type: ignore
+    LOG_DIR = Logs.LOG_DIR
+    SUB_QOS_DEPTH = Comms.SUB_QOS_DEPTH
+    MAVLINK_RECEIVER_URL = Comms.SERIAL_PORT1
+    MAVLINK_RECEIVER_BAUD = Comms.SERIAL1_BAUD_RATE
+except Exception:
+    # Standalone defaults for simulation / docker runtime.
+    LOG_DIR = "~/polaris_logs"
+    SUB_QOS_DEPTH = 10
+    MAVLINK_RECEIVER_URL = "tcp:127.0.0.1:5760"
+    MAVLINK_RECEIVER_BAUD = 57600
 
 
 class OutputMonitor(Node):
@@ -28,20 +42,20 @@ class OutputMonitor(Node):
 
         # Initialize state variables
         self.mode = "UNKNOWN"
-        self.armed = False
+        self.armed = True
         self.system_status = "UNKNOWN"
         self.roll = 0.0
         self.pitch = 0.0
         self.yaw = 0.0
         self.rc_channels = []
-        self.battery_current = 0.0
+        self.cmd_velocity = []
         self.pressure_diff = 0.0
 
         # Create subscriptions
         self.create_subscription(String, "/pixhawk/heartbeat", self.heartbeat_cb, 10)
         self.create_subscription(Imu, "/pixhawk/attitude", self.attitude_cb, 10)
         self.create_subscription(Int16MultiArray, "/pixhawk/rc_channels", self.rc_cb, 10)
-        self.create_subscription(BatteryState, "/pixhawk/battery", self.battery_cb, 10)
+        self.create_subscription(Twist, "/pixhawk/cmd_vel", self.cmd_vel_cb, SUB_QOS_DEPTH)
         self.create_subscription(
             FluidPressure, "/pixhawk/scaled_pressure", self.pressure_cb, 10
         )
@@ -87,11 +101,11 @@ class OutputMonitor(Node):
     def rc_cb(self, msg):
         self.rc_channels = msg.data
 
-    def battery_cb(self, msg):
-        self.battery_current = msg.current
-
     def pressure_cb(self, msg):
         self.pressure_diff = msg.fluid_pressure
+
+    def cmd_vel_cb(self, msg):
+        self.cmd_velocity = msg.data
 
     # this function actually print the dashboard
     def print_dashboard(self):
@@ -108,10 +122,10 @@ class OutputMonitor(Node):
         print(f"Pitch: {self.pitch}")
         print(f"Yaw: {self.yaw}")
 
-        print(f"Battery Current: {self.battery_current}")
         print(f"Pressure Diff: {self.pressure_diff}")
 
         print(f"RC Channels: {list(self.rc_channels)}")
+        print(f"cmd_velocities: {list(self.cmd_velocity)}")
         print("============================")
 
 

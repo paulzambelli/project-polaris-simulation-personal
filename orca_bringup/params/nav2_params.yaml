@@ -81,9 +81,9 @@ controller_server:
 
       # Desired velocities and accelerations
       x_vel: 0.4
-      x_accel: 0.1
+      x_accel: 0.4
       z_vel: 0.3
-      z_accel: 0.1
+      z_accel: 0.3
       yaw_vel: 0.25
       yaw_accel: 0.5
 
@@ -107,7 +107,7 @@ local_costmap:
       publish_frequency: 2.0
       global_frame: odom
       robot_base_frame: base_link
-      use_sim_time: false
+      use_sim_time: true
       rolling_window: true
       width: 3
       height: 3
@@ -129,7 +129,7 @@ global_costmap:
       publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_link
-      use_sim_time: false
+      use_sim_time: true
       rolling_window: true
       track_unknown_space: true
       plugins: ["obstacle_layer", "inflation_layer"]
@@ -158,7 +158,7 @@ planner_server_rclcpp_node:
     use_sim_time: True
 
 # TODO is this used? Should be behaviors?
-recoveries_server:
+behavior_server:
   ros__parameters:
     costmap_topic: "local_costmap/costmap_raw"
     footprint_topic: "local_costmap/published_footprint"
