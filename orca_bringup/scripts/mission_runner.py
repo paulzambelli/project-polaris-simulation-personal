@@ -165,6 +165,7 @@ def main():
         print('>>> Executing mission <<<')
         send_goal(node, follow_waypoints, delay_loop)
 
+        """
         if rclpy.ok():
             print('>>> Disarming <<<')
             arm_pub.publish(Bool(data=False))
@@ -172,6 +173,7 @@ def main():
             print('>>> Setting Pixhawk mode to MANUAL <<<')
             mode_pub.publish(String(data='MANUAL'))
             rclpy.spin_once(node, timeout_sec=0.2)
+        """
 
         print('>>> Mission complete <<<')
 

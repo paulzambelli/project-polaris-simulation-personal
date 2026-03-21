@@ -80,6 +80,12 @@ def generate_launch_description():
         ),
 
         DeclareLaunchArgument(
+            'enable_external_odom',
+            default_value='True',
+            description='Forward /odom to ArduPilot as MAVLink ODOMETRY (ros2_receiver).',
+        ),
+
+        DeclareLaunchArgument(
             'nav',
             default_value='True',
             description='Launch navigation?',
@@ -98,6 +104,7 @@ def generate_launch_description():
                 'respawn': LaunchConfiguration('comms_respawn'),
                 'respawn_delay': '2.0',
                 'use_sim_time': use_sim_time,
+                'enable_external_odom': LaunchConfiguration('enable_external_odom'),
             }.items(),
             condition=IfCondition(LaunchConfiguration('comms')),
         ),

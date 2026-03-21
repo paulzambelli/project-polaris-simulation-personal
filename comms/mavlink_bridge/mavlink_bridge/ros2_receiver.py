@@ -8,7 +8,14 @@ from pymavlink import mavutil
 from std_msgs.msg import String, Bool, Int16MultiArray
 
 # For Autonomy
-from geometry_msgs.msg import Twist # Needs to be adapted for sending cmd_vel
+from geometry_msgs.msg import Twist  # Needs to be adapted for sending cmd_vel
+from nav_msgs.msg import Odometry
+
+from mavlink_bridge.odom_mavlink import (
+    nan_pose_covariance,
+    nan_velocity_covariance,
+    ros_odom_to_mavlink_odometry,
+)
 
 
 # Standalone defaults for simulation / docker runtime.
@@ -105,9 +112,85 @@ class MavlinkBridgeReceiver(Node):
             Bool, "/pixhawk/arm_cmd", self.arm_disarm_cb, SUB_QOS_DEPTH
         )
 
+        self.declare_parameter("enable_external_odom", False)
+        self.declare_parameter("external_odom_topic", "/odom")
+        self.declare_parameter("external_odom_max_rate_hz", 50.0)
+        self.declare_parameter("external_odom_quality", 100)
+
+        self._external_odom_last_send_ns = 0
+        if self.get_parameter("enable_external_odom").get_parameter_value().bool_value:
+            odom_topic = (
+                self.get_parameter("external_odom_topic").get_parameter_value().string_value
+            )
+            self.create_subscription(
+                Odometry,
+                odom_topic,
+                self.external_odom_cb,
+                SUB_QOS_DEPTH,
+            )
+            self.get_logger().info(
+                f"External nav: MAVLink ODOMETRY enabled from ROS topic {odom_topic!r}"
+            )
+
         self.get_logger().info("MavlinkBridgeReceiver: Node has been initialized")
 
     """--------------------------------------------- Callback functions for the subscribers ---------------------------------------------"""
+
+    def external_odom_cb(self, msg):
+        """Stream nav_msgs/Odometry to FCU as MAVLink ODOMETRY (ArduPilot external nav)."""
+        now_ns = self.get_clock().now().nanoseconds
+        max_hz = self.get_parameter("external_odom_max_rate_hz").get_parameter_value().double_value
+        if max_hz > 0.0:
+            min_interval_ns = int(1e9 / max_hz)
+            if now_ns - self._external_odom_last_send_ns < min_interval_ns:
+                return
+        self._external_odom_last_send_ns = now_ns
+
+        p = msg.pose.pose.position
+        oq = msg.pose.pose.orientation
+        tw = msg.twist.twist
+        x, y, z, quat, vel, rates = ros_odom_to_mavlink_odometry(
+            float(p.x),
+            float(p.y),
+            float(p.z),
+            oq,
+            (
+                float(tw.linear.x),
+                float(tw.linear.y),
+                float(tw.linear.z),
+            ),
+            (
+                float(tw.angular.x),
+                float(tw.angular.y),
+                float(tw.angular.z),
+            ),
+        )
+        stamp = msg.header.stamp
+        time_usec = int(stamp.sec * 1_000_000 + stamp.nanosec // 1000)
+        qual = self.get_parameter("external_odom_quality").get_parameter_value().integer_value
+        qual = max(-1, min(100, int(qual)))
+
+        m = mavutil.mavlink
+        self.port.mav.odometry_send(
+            time_usec,
+            m.MAV_FRAME_LOCAL_FRD,
+            m.MAV_FRAME_BODY_FRD,
+            x,
+            y,
+            z,
+            list(quat),
+            vel[0],
+            vel[1],
+            vel[2],
+            rates[0],
+            rates[1],
+            rates[2],
+            nan_pose_covariance(),
+            nan_velocity_covariance(),
+            0,
+            m.MAV_ESTIMATOR_TYPE_VISION,
+            qual,
+        )
 
     def rc_override_cb(self, msg):
         """
