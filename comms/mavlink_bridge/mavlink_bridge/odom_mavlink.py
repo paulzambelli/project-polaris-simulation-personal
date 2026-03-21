@@ -15,7 +15,10 @@ from geometry_msgs.msg import Quaternion
 
 
 def _quat_to_R(q: Quaternion) -> List[List[float]]:
-    """Rotation matrix R such that v_world = R @ v_body (FLU body expressed in ENU world)."""
+    """Rotation matrix R such that v_world = R @ v_body (FLU body expressed in ENU world).
+    This is all still for ROS ENU world and FLU body, the MAVLink conversion happens in ros_odom_to_mavlink_odometry().
+    So a vector from body frame (with FLU) gets represented in map frame (with ENU)."""
+    
     x, y, z, w = float(q.x), float(q.y), float(q.z), float(q.w)
     xx, yy, zz = x * x, y * y, z * z
     xy, xz, yz = x * y, x * z, y * z
