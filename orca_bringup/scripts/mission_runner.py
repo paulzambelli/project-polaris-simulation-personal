@@ -29,9 +29,16 @@ Code inspired by https://github.com/ros2/ros2cli/blob/rolling/ros2action/ros2act
 
 Usage:
 -- ros2 run orca_bringup mission_runner.py
+
+With the mavlink_bridge stack, ArduSub only receives velocity setpoints from ``ros2_receiver``
+when the vehicle is in GUIDED **and** ``ros2_receiver`` has applied that mode (it gates
+``/pixhawk/cmd_vel`` on its internal mode). The sub must also be **armed** for motors to run.
+Upstream Orca4 often had other nodes (e.g. base_controller / mavros path) that masked this;
+this script arms explicitly for the bridge + Nav2 path.
 """
 
 from enum import Enum
+import time
 
 import rclpy
 import rclpy.logging
@@ -39,6 +46,7 @@ from action_msgs.msg import GoalStatus
 from geometry_msgs.msg import Point, Pose, PoseStamped
 from nav2_msgs.action import FollowWaypoints
 from rclpy.action import ActionClient
+from std_msgs.msg import Bool
 from std_msgs.msg import Header
 from std_msgs.msg import String
 
@@ -132,6 +140,7 @@ def main():
     node = None
     follow_waypoints = None
     mode_pub = None
+    arm_pub = None
 
     rclpy.init()
 
@@ -140,15 +149,26 @@ def main():
 
         follow_waypoints = ActionClient(node, FollowWaypoints, '/follow_waypoints')
         mode_pub = node.create_publisher(String, '/pixhawk/mode_cmd', 10)
+        arm_pub = node.create_publisher(Bool, '/pixhawk/arm_cmd', 10)
+
+        # Allow publishers to match with mavlink_bridge subscribers
+        time.sleep(0.5)
 
         print('>>> Setting Pixhawk mode to GUIDED <<<')
         mode_pub.publish(String(data='GUIDED'))
-        rclpy.spin_once(node, timeout_sec=0.2)
+        time.sleep(2.0)  # Let ArduSub enter GUIDED before Nav2 sends cmd_vel
+
+        print('>>> Arming <<<')
+        arm_pub.publish(Bool(data=True))
+        time.sleep(1.0)
 
         print('>>> Executing mission <<<')
         send_goal(node, follow_waypoints, delay_loop)
 
         if rclpy.ok():
+            print('>>> Disarming <<<')
+            arm_pub.publish(Bool(data=False))
+            time.sleep(0.5)
             print('>>> Setting Pixhawk mode to MANUAL <<<')
             mode_pub.publish(String(data='MANUAL'))
             rclpy.spin_once(node, timeout_sec=0.2)
@@ -156,6 +176,10 @@ def main():
         print('>>> Mission complete <<<')
 
     except KeyboardInterrupt:
+        if arm_pub is not None and rclpy.ok():
+            print('>>> Interrupted, disarming <<<')
+            arm_pub.publish(Bool(data=False))
+            time.sleep(0.3)
         if mode_pub is not None and rclpy.ok():
             print('>>> Interrupted, setting Pixhawk mode to MANUAL <<<')
             mode_pub.publish(String(data='MANUAL'))

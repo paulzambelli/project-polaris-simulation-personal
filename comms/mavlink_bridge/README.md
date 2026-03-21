@@ -2,6 +2,8 @@
 
 ROS 2 nodes that talk MAVLink to the vehicle (Pixhawk hardware or **ArduSub SITL**).
 
+**Design plan (external nav / replacing MAVROS `vision_pose`):** see [docs/EXTERNAL_NAV_PLAN.md](docs/EXTERNAL_NAV_PLAN.md) — cites [ArduPilot Non-GPS position estimation](https://ardupilot.org/dev/docs/mavlink-nongps-position-estimation.html), [MAVLink](https://mavlink.io/en/messages/common.html), and [MAVROS](https://github.com/mavlink/mavros/tree/ros2/mavros).
+
 ## ArduSub SITL and TCP ports
 
 ArduPilot SITL exposes UARTs as TCP ports. Defaults are documented here:
