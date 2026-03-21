@@ -12,9 +12,16 @@ from geometry_msgs.msg import Twist # Needs to be adapted for sending cmd_vel
 
 
 # Standalone defaults for simulation / docker runtime.
+#
+# ArduPilot SITL maps UARTs to TCP ports (see SERIALn defaults):
+#   https://ardupilot.org/dev/docs/learning-ardupilot-uarts-and-the-console.html
+# Default roles: SERIAL0 -> tcp:5760 (first link), SERIAL1 -> tcp:5762 (second MAVLink).
+# Do not use the same TCP port as mavlink_publisher: SITL typically accepts one client per
+# serial port; two pymavlink TCP clients on 5760 will fight or hang on heartbeat.
 LOG_DIR = "~/polaris_logs"
 SUB_QOS_DEPTH = 10
-MAVLINK_RECEIVER_URL = "tcp:127.0.0.1:5760"
+# Command / outbound link: use second SITL serial (5762) so mavlink_publisher can use 5760.
+MAVLINK_RECEIVER_URL = "tcp:127.0.0.1:5762"
 MAVLINK_RECEIVER_BAUD = 57600
 
 log_dir = os.path.expanduser(LOG_DIR)

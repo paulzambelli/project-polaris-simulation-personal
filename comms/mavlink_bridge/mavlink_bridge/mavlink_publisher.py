@@ -70,6 +70,8 @@ class MavlinkBridgeSender(Node):
 
         self.logger = DualLogger(self.ros_logger, self._file_logger)
 
+        # SITL: SERIAL0 default is tcp:127.0.0.1:5760 (see ArduPilot UART / console doc).
+        # Keep ros2_receiver on a different port (default 5762 / SERIAL1) to avoid two clients on one serial.
         mavlink_url = os.getenv("MAVLINK_PUBLISHER_URL", "tcp:127.0.0.1:5760")
         mavlink_baud = int(os.getenv("MAVLINK_PUBLISHER_BAUD", "57600"))
         self.port = mavutil.mavlink_connection(mavlink_url, baud=mavlink_baud)

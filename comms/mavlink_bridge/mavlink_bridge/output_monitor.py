@@ -13,8 +13,6 @@ from geometry_msgs.msg import Twist # Needs to be adapted for sending cmd_vel
 # Standalone defaults for simulation / docker runtime.
 LOG_DIR = "~/polaris_logs"
 SUB_QOS_DEPTH = 10
-MAVLINK_RECEIVER_URL = "tcp:127.0.0.1:5760"
-MAVLINK_RECEIVER_BAUD = 57600
 
 
 class OutputMonitor(Node):

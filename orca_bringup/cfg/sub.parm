@@ -99,3 +99,7 @@ EK3_SRC1_YAW 6        # External nav
 
 # Reduce simulated barometer noise
 SIM_BARO_RND 0.02
+
+# SITL second UART: MAVLink on TCP 5762 (SERIAL1) for a companion / second GCS link.
+# See https://ardupilot.org/dev/docs/learning-ardupilot-uarts-and-the-console.html
+SERIAL1_PROTOCOL 2
