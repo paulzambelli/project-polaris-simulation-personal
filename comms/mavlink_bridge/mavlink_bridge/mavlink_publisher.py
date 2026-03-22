@@ -79,11 +79,14 @@ class MavlinkBridgeSender(Node):
         self.port.wait_heartbeat()
         self.logger.info(f"Heartbeat received from system {self.port.target_system}")
 
-        self.heartbeat_publisher = self.create_publisher(String, "/pixhawk/heartbeat", 10)
+        self.heartbeat_publisher = self.create_publisher(
+            String, "/pixhawk/heartbeat", 10)
 
-        self.attitude_publisher = self.create_publisher(Imu, "/pixhawk/attitude", 10)
+        self.attitude_publisher = self.create_publisher(
+            Imu, "/pixhawk/attitude", 10)
 
-        self.rc_channel_publisher = self.create_publisher(Int16MultiArray, "/pixhawk/rc_channels", 10)
+        self.rc_channel_publisher = self.create_publisher(
+            Int16MultiArray, "/pixhawk/rc_channels", 10)
 
         self.battery_publisher = self.create_publisher(
             BatteryState, "/pixhawk/battery", 10

@@ -51,6 +51,8 @@ def generate_launch_description():
     rviz_file = os.path.join(orca_bringup_dir, 'cfg', 'sim_launch.rviz')
     world_file = os.path.join(orca_description_dir, 'worlds', 'sand.world')
     
+    # e.g. ros2 launch orca_bringup sim_launch.py gzclient:=False ardusub:=False
+
     return LaunchDescription([
         DeclareLaunchArgument(
             'ardusub',
@@ -125,9 +127,10 @@ def generate_launch_description():
         # -w: wipe eeprom
         # --home: start location (lat,lon,alt,yaw). Yaw is provided by Gazebo, so the start yaw value is ignored.
         # ardusub must be on the $PATH, see src/orca4/setup.bash
+        # St. Moritz!
         ExecuteProcess(
             cmd=['ardusub', '-S', '-w', '-M', 'JSON', '--defaults', ardusub_params_file,
-                 '-I0', '--home', '33.810313,-118.39386700000001,0.0,0'],
+                 '-I0', '--home', '46.494536,9.856195,1822.0,0'],
             output='screen',
             condition=IfCondition(LaunchConfiguration('ardusub')),
         ),

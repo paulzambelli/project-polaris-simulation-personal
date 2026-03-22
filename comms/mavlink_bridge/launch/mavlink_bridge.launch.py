@@ -37,14 +37,10 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "enable_external_odom",
-                default_value="false",
+                default_value="true",
                 description="If true, ros2_receiver forwards /odom (or external_odom_topic) as MAVLink ODOMETRY.",
             ),
-            DeclareLaunchArgument(
-                "external_odom_topic",
-                default_value="/odom",
-                description="nav_msgs/Odometry topic for external navigation.",
-            ),
+            
             Node(
                 package="mavlink_bridge",
                 executable="mavlink_publisher",
@@ -76,7 +72,6 @@ def generate_launch_description():
                         "enable_external_odom": ParameterValue(
                             enable_external_odom, value_type=bool
                         ),
-                        "external_odom_topic": external_odom_topic,
                     },
                 ],
             ),

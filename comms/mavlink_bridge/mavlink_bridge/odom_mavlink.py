@@ -30,6 +30,7 @@ def _quat_to_R(q: Quaternion) -> List[List[float]]:
     ]
 
 
+#Multiplication and transpose for 3x3 matrices, since we don't want to pull in numpy just for this.
 def _matmul(A: Sequence[Sequence[float]], B: Sequence[Sequence[float]]) -> List[List[float]]:
     return [
         [
@@ -39,9 +40,9 @@ def _matmul(A: Sequence[Sequence[float]], B: Sequence[Sequence[float]]) -> List[
         for i in range(3)
     ]
 
-
 def _transpose(M: Sequence[Sequence[float]]) -> List[List[float]]:
     return [[M[j][i] for j in range(3)] for i in range(3)]
+
 
 
 def _R_to_quat_wxyz(R: Sequence[Sequence[float]]) -> Tuple[float, float, float, float]:
