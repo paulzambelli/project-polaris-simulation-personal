@@ -126,7 +126,7 @@ class MavlinkBridgeSender(Node):
                 break  # No more messages in buffer
 
             if msg is not None:
-                self.logger.info(f"Received: {msg.get_type()}")
+                self.logger.debug(f"Received: {msg.get_type()}")
 
                 if msg.get_type() == "HEARTBEAT":
                     self.handle_heartbeat(msg)
@@ -159,7 +159,7 @@ class MavlinkBridgeSender(Node):
         ros_msg = String()
         ros_msg.data = f"mode={mode};armed={int(armed)};system_status={msg.system_status}"
         self.heartbeat_publisher.publish(ros_msg)
-        self.logger.info(
+        self.logger.debug(
             f"Published Heartbeat: Status={msg.system_status}, Mode={mode}, Armed={armed}"
         )
 
@@ -186,7 +186,7 @@ class MavlinkBridgeSender(Node):
         ros_msg.orientation.z = cr * cp * sy - sr * sp * cy
 
         self.attitude_publisher.publish(ros_msg)
-        self.logger.info(
+        self.logger.debug(
             f"Published Attitude: Roll={roll:.2f}, Pitch={pitch:.2f}, Yaw={yaw:.2f}"
         )
 
@@ -196,7 +196,7 @@ class MavlinkBridgeSender(Node):
         ros_msg.data = [msg.chan1_raw, msg.chan2_raw, msg.chan3_raw, msg.chan4_raw]
 
         self.rc_channel_publisher.publish(ros_msg)
-        self.logger.info(f"Published RC: {ros_msg.data}")
+        self.logger.debug(f"Published RC: {ros_msg.data}")
 
     def handle_battery(self, msg):
         """Process BATTERY_STATUS message and publish to ROS2"""
@@ -207,7 +207,7 @@ class MavlinkBridgeSender(Node):
         ros_msg.percentage = float(msg.battery_remaining) / 100.0
 
         self.battery_publisher.publish(ros_msg)
-        self.logger.info(
+        self.logger.debug(
             f"Published Battery: Current={ros_msg.current:.2f}A, Remaining={ros_msg.percentage:.0%}"
         )
 
@@ -218,16 +218,15 @@ class MavlinkBridgeSender(Node):
         ros_msg.fluid_pressure = float(msg.press_abs) * 100.0
 
         self.scaled_pressure_publisher.publish(ros_msg)
-        self.logger.info(f"Published Pressure: Diff={ros_msg.fluid_pressure} Pa")
+        self.logger.debug(f"Published Pressure: Diff={ros_msg.fluid_pressure} Pa")
 
     def handle_manual_control(self, msg):
         """Process MANUAL_CONTROL message and publish to ROS2"""
-        # This is a placeholder for handling manual control messages if needed
-        self.logger.info("manual control callback triggered")
+        self.logger.debug("manual control callback triggered")
         ros_msg = Int16MultiArray()
         ros_msg.data = [msg.x, msg.y, msg.z, msg.r, msg.buttons, msg.s, msg.t]
         self.manual_control_publisher.publish(ros_msg)
-        self.logger.info(
+        self.logger.debug(
             f"Published Manual Control: x={msg.x}, y={msg.y}, z={msg.z}, r={msg.r}, s={msg.s}, t={msg.t}"
         ) 
 

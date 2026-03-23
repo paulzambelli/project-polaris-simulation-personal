@@ -165,7 +165,7 @@ class MavlinkBridgeReceiver(Node):
             return
 
         channels = msg.data
-        self.get_logger().info(f"Received ROS2 RC override: {channels}")
+        self.get_logger().debug(f"Received ROS2 RC override: {channels}")
 
         # Send MAVLink RC_CHANNELS_OVERRIDE message
         # Arguments: target_system, target_component and the different RCOverride values in channels
@@ -383,7 +383,7 @@ class MavlinkBridgeReceiver(Node):
         """
         Input values: -1000 to 1000 (except heave, see below)
         """
-        self._file_logger.info(
+        self._file_logger.debug(
             f"Sending 4DOF command with control input: {control_input}"
         )
         surge, sway, heave, yaw = control_input
@@ -418,10 +418,10 @@ class MavlinkBridgeReceiver(Node):
         newer MAVLink 2.0 implementations. This has to be tested!
         Input values: -1000 to 1000 (except heave, see below)
         """
-        self.get_logger().info(
+        self.get_logger().debug(
             f"Sending 6DOF command with control input: {control_input}"
         )
-        self._file_logger.info(
+        self._file_logger.debug(
             f"Sending 6DOF command with control input: {control_input}"
         )
         surge, sway, heave, yaw, roll, pitch = control_input
