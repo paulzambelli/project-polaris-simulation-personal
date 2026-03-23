@@ -32,4 +32,5 @@ docker run -it \
     --privileged \
     --security-opt seccomp=unconfined \
     --gpus all \
-    orca4:latest
+    orca4:latest \
+    tmux new-session -A -s orca

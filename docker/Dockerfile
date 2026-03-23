@@ -20,6 +20,7 @@ RUN apt-get update \
     mlocate \
     software-properties-common \
     sudo \
+    tmux \
     wget \
     vim \
   && rm -rf /var/lib/apt/lists/*

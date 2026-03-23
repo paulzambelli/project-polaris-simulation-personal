@@ -32,7 +32,7 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription, TimerAction
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
@@ -188,16 +188,23 @@ def generate_launch_description():
             condition=UnlessCondition(LaunchConfiguration('base')),
         ),
 
-        # Bring up Orca and Nav2 nodes
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(orca_bringup_dir, 'launch', 'bringup.py')),
-            launch_arguments={
-                'base': LaunchConfiguration('base'),
-                'comms': LaunchConfiguration('comms'),
-                'nav': LaunchConfiguration('nav'),
-                'use_sim_time': use_sim_time,
-                'orca_params_file': orca_params_file,
-            }.items(),
+        # Delay bringup so /clock and /tf exist before lifecycle_manager autostart. Otherwise
+        # behavior_server can fail configure while controller/planner already sit in inactive.
+        TimerAction(
+            period=3.0,
+            actions=[
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(
+                        os.path.join(orca_bringup_dir, 'launch', 'bringup.py')),
+                    launch_arguments={
+                        'base': LaunchConfiguration('base'),
+                        'comms': LaunchConfiguration('comms'),
+                        'nav': LaunchConfiguration('nav'),
+                        'use_sim_time': use_sim_time,
+                        'orca_params_file': orca_params_file,
+                    }.items(),
+                ),
+            ],
         ),
     ])
 
