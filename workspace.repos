@@ -5,11 +5,6 @@ repositories:
     url: https://github.com/clydemcqueen/bluerov2_gz
     version: main
 
-  orb_slam_2_ros:
-    type: git
-    url: https://github.com/clydemcqueen/orb_slam_2_ros
-    version: orca4_humble
-
   ros2_shared:
     type: git
     url: https://github.com/ptrmu/ros2_shared

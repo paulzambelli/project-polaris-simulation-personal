@@ -152,11 +152,14 @@ def generate_launch_description():
         ),
 
 
-        # Publish ground truth pose from Ignition Gazebo
+        # Gazebo sim time -> ROS /clock (required when use_sim_time is true).
+        # Without this, Nav2 lifecycle often stops after planner_server: behavior_server never
+        # configures and /follow_waypoints has no server. Use GZ_TO_ROS only; see ros_gz_bridge README.
         Node(
             package='ros_gz_bridge',
             executable='parameter_bridge',
             arguments=[
+                '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
                 '/model/orca4/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
             ],
             remappings=[

@@ -1,6 +1,9 @@
 import rclpy
 from rclpy.node import Node
-import logging, os
+from rclpy.qos import qos_profile_sensor_data
+import logging
+import os
+import time
 from datetime import datetime
 
 os.environ["MAVLINK20"] = "1"
@@ -68,9 +71,27 @@ class MavlinkBridgeReceiver(Node):
         # configures serial port the pixhawk is connected to and the baud rate
         mavlink_url = os.getenv("MAVLINK_RECEIVER_URL", MAVLINK_RECEIVER_URL)
         mavlink_baud = int(os.getenv("MAVLINK_RECEIVER_BAUD", str(MAVLINK_RECEIVER_BAUD)))
-        self.port = mavutil.mavlink_connection(
-            mavlink_url, baud=mavlink_baud
-        )  # For sending commands to Pixhawk
+        max_attempts = max(1, int(os.getenv("MAVLINK_RECEIVER_CONNECT_RETRIES", "90")))
+        retry_delay = float(os.getenv("MAVLINK_RECEIVER_CONNECT_DELAY_SEC", "1.0"))
+        # SITL often starts after ros2_receiver; avoid exit+respawn storm on connection refused.
+        self.port = None
+        last_err: OSError | None = None
+        for attempt in range(1, max_attempts + 1):
+            try:
+                self.port = mavutil.mavlink_connection(mavlink_url, baud=mavlink_baud)
+                break
+            except (ConnectionRefusedError, OSError) as e:
+                last_err = e
+                if attempt == 1 or attempt % 5 == 0:
+                    self.get_logger().warning(
+                        f"MAVLink connect {mavlink_url!r} failed ({e}); "
+                        f"retry {attempt}/{max_attempts} in {retry_delay}s (waiting for SITL SERIAL1)..."
+                    )
+                time.sleep(retry_delay)
+        if self.port is None:
+            raise RuntimeError(
+                f"Could not open MAVLink {mavlink_url!r} after {max_attempts} attempts"
+            ) from last_err
         # self.port_in = mavutil.mavlink_connection(
         #     "/dev/ttyTHS1", baud=57600
         # )  # For receiving messages from Pixhawk (e.g., heartbeats, status)
@@ -124,7 +145,7 @@ class MavlinkBridgeReceiver(Node):
                 Odometry,
                 "/odom",
                 self.external_odom_cb,
-                SUB_QOS_DEPTH,
+                qos_profile_sensor_data,
             )
             self.get_logger().info(
                 f"External nav: MAVLink ODOMETRY enabled from ROS topic /odom"
