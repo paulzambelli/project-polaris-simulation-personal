@@ -97,7 +97,14 @@ class OutputMonitor(Node):
         self.pressure_diff = msg.fluid_pressure
 
     def cmd_vel_cb(self, msg):
-        self.cmd_velocity = msg.data
+        self.cmd_velocity = (
+            msg.linear.x,
+            msg.linear.y,
+            msg.linear.z,
+            msg.angular.x,
+            msg.angular.y,
+            msg.angular.z,
+        )
 
     # this function actually print the dashboard
     def print_dashboard(self):
@@ -117,7 +124,7 @@ class OutputMonitor(Node):
         print(f"Pressure Diff: {self.pressure_diff}")
 
         print(f"RC Channels: {list(self.rc_channels)}")
-        print(f"cmd_velocities: {list(self.cmd_velocity)}")
+        print(f"cmd_vel (lin x,y,z | ang x,y,z): {list(self.cmd_velocity)}")
         print("============================")
 
 
