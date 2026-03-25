@@ -226,10 +226,19 @@ class MavlinkBridgeReceiver(Node):
         # ROS Angular Z (CCW) -> NED Yaw Rate (CW) - Flip sign
         yaw_rate = -float(msg.angular.z)
 
-        # 2. Define the Type Mask
-        # Bits: 1,2,3 (Pos), 5 (Vel Y), 7,8,9 (Acc), 11 (Yaw Angle) are IGNORED
-        # Bits: 4 (Vel X), 6 (Vel Z), 12 (Yaw Rate) are USED
-        type_mask = 3031 # 0b0000101111010111
+        # 2. Type mask (ArduSub GCS_MAVLink_Sub.cpp): vel_ignore is true if ANY of
+        # MAVLINK_SET_POS_TYPE_MASK_VEL_IGNORE bits (vx,vy,vz) are set — so we must not
+        # set VY_IGNORE when commanding vx,vz; otherwise guided_set_velocity() is skipped.
+        m = mavutil.mavlink
+        type_mask = (
+            m.POSITION_TARGET_TYPEMASK_X_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_Y_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_Z_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_AX_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_AY_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_AZ_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_YAW_IGNORE
+        )
 
         # 3. Send to Pixhawk
         # Using MAV_FRAME_BODY_OFFSET_NED so "Forward" is relative to the sub's nose

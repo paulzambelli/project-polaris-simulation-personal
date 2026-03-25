@@ -16,6 +16,11 @@ log_dir = os.path.expanduser("~/polaris_logs")
 os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, f"mavlink_{datetime.now():%Y%m%d_%H%M%S}.log")
 
+# MAVLink press_abs is hectopascals (hPa). ArduPilot uses SCALED_PRESSURE for baro 1,
+# SCALED_PRESSURE2/3 for extra instances — unused instances often send garbage (e.g. large negative).
+_PRESS_ABS_HPA_MIN = 200.0
+_PRESS_ABS_HPA_MAX = 4000.0
+
 
 class DualLogger:
     def __init__(self, ros_logger, file_logger):
@@ -101,6 +106,7 @@ class MavlinkBridgeSender(Node):
         )
 
         self.timer = self.create_timer(0.5, self.mavlink_callback)
+        self._invalid_pressure_warn_ns = 0
 
         # Request MANUAL_CONTROL messages at 10 Hz
         self.logger.info("Requesting MANUAL_CONTROL message stream from Pixhawk...")
@@ -136,7 +142,11 @@ class MavlinkBridgeSender(Node):
                     self.handle_rc_channels(msg)
                 elif msg.get_type() == "BATTERY_STATUS":
                     self.handle_battery(msg)
-                elif msg.get_type() == "SCALED_PRESSURE2":
+                elif msg.get_type() in (
+                    "SCALED_PRESSURE",
+                    "SCALED_PRESSURE2",
+                    "SCALED_PRESSURE3",
+                ):
                     self.handle_scaled_pressure(msg)
                 elif msg.get_type() == "MANUAL_CONTROL":
                     self.handle_manual_control(msg)
@@ -212,13 +222,31 @@ class MavlinkBridgeSender(Node):
         )
 
     def handle_scaled_pressure(self, msg):
-        """SCALED_PRESSURE2: MAVLink press_abs is absolute pressure in hPa; ROS FluidPressure is Pa (×100)."""
+        """MAVLink press_abs is hPa; ROS sensor_msgs/FluidPressure is Pa (×100).
+
+        Prefer ignoring invalid extra baro instances (SCALED_PRESSURE2/3) — see ArduPilot PR #9966.
+        """
+        hpa = float(msg.press_abs)
+        if not (
+            math.isfinite(hpa)
+            and _PRESS_ABS_HPA_MIN <= hpa <= _PRESS_ABS_HPA_MAX
+        ):
+            now_ns = self.get_clock().now().nanoseconds
+            if now_ns - self._invalid_pressure_warn_ns > 5_000_000_000:
+                self._invalid_pressure_warn_ns = now_ns
+                self.logger.warning(
+                    f"Ignoring {msg.get_type()} press_abs={hpa!r} hPa "
+                    f"(valid range {_PRESS_ABS_HPA_MIN}–{_PRESS_ABS_HPA_MAX} hPa). "
+                    "Extra baro slots often publish garbage; primary is SCALED_PRESSURE."
+                )
+            return
+
         ros_msg = FluidPressure()
-        pa = float(msg.press_abs) * 100.0
-        ros_msg.fluid_pressure = pa
+        ros_msg.fluid_pressure = hpa * 100.0
         self.scaled_pressure_publisher.publish(ros_msg)
-        # Absurd values usually mean SITL/external baro misconfiguration (see sub.parm BARO_EXT_BUS).
-        self.logger.debug(f"Published pressure (abs): {pa:.1f} Pa (press_abs hPa={msg.press_abs})")
+        self.logger.debug(
+            f"Published pressure (abs): {ros_msg.fluid_pressure:.1f} Pa ({msg.get_type()} press_abs hPa={hpa})"
+        )
 
     def handle_manual_control(self, msg):
         """Process MANUAL_CONTROL message and publish to ROS2"""

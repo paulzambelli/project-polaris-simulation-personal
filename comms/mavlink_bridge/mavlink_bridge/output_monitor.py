@@ -40,7 +40,7 @@ class OutputMonitor(Node):
         self.pitch = 0.0
         self.yaw = 0.0
         self.rc_channels = []
-        self.cmd_velocity = []
+        self.cmd_velocity = None  # set by /pixhawk/cmd_vel; None = no samples yet
         self.pressure_diff = 0.0
 
         # Create subscriptions
@@ -121,11 +121,15 @@ class OutputMonitor(Node):
         print(f"Pitch: {self.pitch}")
         print(f"Yaw: {self.yaw}")
 
-        # From SCALED_PRESSURE2 via mavlink_publisher (press_abs*hPa->Pa); not true "diff" pressure.
+        # From SCALED_PRESSURE(1..3) via mavlink_publisher (valid press_abs only; hPa×100 -> Pa).
         print(f"Pressure (abs est., Pa): {self.pressure_diff}")
 
         print(f"RC Channels: {list(self.rc_channels)}")
-        print(f"cmd_vel (lin x,y,z | ang x,y,z): {list(self.cmd_velocity)}")
+        cv = self.cmd_velocity
+        print(
+            "cmd_vel (lin x,y,z | ang x,y,z): "
+            f"{list(cv) if cv is not None else 'no msgs yet'}"
+        )
         print("============================")
 
 
