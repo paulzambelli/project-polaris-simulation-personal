@@ -82,7 +82,10 @@ RNGFND1_TYPE   1
 SERVO8_FUNCTION 7
 SERVO8_MAX 1900
 SERVO8_MIN 1100
-BARO_EXT_BUS 1
+
+# External I2C baro. On SITL, BARO_EXT_BUS 1 can yield invalid pressure and MAV_STATE_CRITICAL;
+# for Gazebo-only sim, comment this line or set BARO_EXT_BUS 0. Re-enable for real Bar30 hardware.
+BARO_EXT_BUS 0
 
 # Enable external nav
 # From https://ardupilot.org/copter/docs/common-vio-tracking-camera.html

@@ -156,7 +156,12 @@ def send_goal(executor, action_client, send_goal_msg) -> SendGoalResult:
             cancel_response = cancel_future.result()
 
             if cancel_response is None:
-                raise RuntimeError('Exception while canceling goal: {!r}'.format(cancel_future.exception()))
+                exc = cancel_future.exception()
+                if exc is not None:
+                    raise RuntimeError('Exception while canceling goal: {!r}'.format(exc)) from exc
+                # Context shutting down (e.g. Ctrl+C) can complete the future with no response.
+                print('Cancel finished without response (shutdown?)')
+                return SendGoalResult.CANCELED
 
             if len(cancel_response.goals_canceling) == 0:
                 raise RuntimeError('Failed to cancel goal')
@@ -211,7 +216,7 @@ def main():
         print('>>> Executing mission <<<')
         send_goal(executor, follow_waypoints, delay_loop)
 
-        """
+        
         if rclpy.ok():
             print('>>> Disarming <<<')
             arm_pub.publish(Bool(data=False))
@@ -219,7 +224,7 @@ def main():
             print('>>> Setting Pixhawk mode to MANUAL <<<')
             mode_pub.publish(String(data='MANUAL'))
             rclpy.spin_once(node, timeout_sec=0.2)
-        """
+        
 
         print('>>> Mission complete <<<')
 

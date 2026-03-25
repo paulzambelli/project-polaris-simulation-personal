@@ -121,7 +121,8 @@ class OutputMonitor(Node):
         print(f"Pitch: {self.pitch}")
         print(f"Yaw: {self.yaw}")
 
-        print(f"Pressure Diff: {self.pressure_diff}")
+        # From SCALED_PRESSURE2 via mavlink_publisher (press_abs*hPa->Pa); not true "diff" pressure.
+        print(f"Pressure (abs est., Pa): {self.pressure_diff}")
 
         print(f"RC Channels: {list(self.rc_channels)}")
         print(f"cmd_vel (lin x,y,z | ang x,y,z): {list(self.cmd_velocity)}")

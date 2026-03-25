@@ -212,13 +212,13 @@ class MavlinkBridgeSender(Node):
         )
 
     def handle_scaled_pressure(self, msg):
-        """Process SCALED_PRESSURE2(this is the bluerobotics pressure sensor) message and publish to ROS2"""
+        """SCALED_PRESSURE2: MAVLink press_abs is absolute pressure in hPa; ROS FluidPressure is Pa (×100)."""
         ros_msg = FluidPressure()
-        # Differential pressure: MAVLink uses hPa, ROS2 expects Pa (multiply by 100)
-        ros_msg.fluid_pressure = float(msg.press_abs) * 100.0
-
+        pa = float(msg.press_abs) * 100.0
+        ros_msg.fluid_pressure = pa
         self.scaled_pressure_publisher.publish(ros_msg)
-        self.logger.debug(f"Published Pressure: Diff={ros_msg.fluid_pressure} Pa")
+        # Absurd values usually mean SITL/external baro misconfiguration (see sub.parm BARO_EXT_BUS).
+        self.logger.debug(f"Published pressure (abs): {pa:.1f} Pa (press_abs hPa={msg.press_abs})")
 
     def handle_manual_control(self, msg):
         """Process MANUAL_CONTROL message and publish to ROS2"""
