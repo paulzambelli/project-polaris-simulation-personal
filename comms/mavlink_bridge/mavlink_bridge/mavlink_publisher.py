@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import math
 import rclpy
 import logging, os
+from typing import Optional
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from pymavlink import mavutil
 from datetime import datetime
 from std_msgs.msg import Int16MultiArray, String
+from nav_msgs.msg import Odometry
 from sensor_msgs.msg import (
     Imu,  # ATTITUDE
     BatteryState,  # BATTERY_STATUS
@@ -20,6 +25,9 @@ log_file = os.path.join(log_dir, f"mavlink_{datetime.now():%Y%m%d_%H%M%S}.log")
 # SCALED_PRESSURE2/3 for extra instances — unused instances often send garbage (e.g. large negative).
 _PRESS_ABS_HPA_MIN = 200.0
 _PRESS_ABS_HPA_MAX = 4000.0
+_GRAVITY = 9.80665
+# High variance marks FluidPressure as an estimate, not FCU baro.
+_HYDROSTATIC_VARIANCE_PA2 = 1.0e12
 
 
 class DualLogger:
@@ -107,6 +115,27 @@ class MavlinkBridgeSender(Node):
 
         self.timer = self.create_timer(0.5, self.mavlink_callback)
         self._invalid_pressure_warn_ns = 0
+        self._last_hydro_fallback_pub_ns = 0
+        self._hydro_fallback_info_logged = False
+        self._odom_pose_z_enu: Optional[float] = None
+
+        self.declare_parameter("hydrostatic_pressure_fallback", True)
+        self.declare_parameter("hydrostatic_odom_topic", "/odom")
+        self.declare_parameter("hydrostatic_surface_z_enu", 0.0)
+        self.declare_parameter("hydrostatic_water_density", 1000.0)
+        self.declare_parameter("hydrostatic_air_pressure_pa", 101325.0)
+
+        odom_topic = (
+            self.get_parameter("hydrostatic_odom_topic")
+            .get_parameter_value()
+            .string_value
+        )
+        self.create_subscription(
+            Odometry,
+            odom_topic,
+            self._odom_pose_cb,
+            qos_profile_sensor_data,
+        )
 
         # Request MANUAL_CONTROL messages at 10 Hz
         self.logger.info("Requesting MANUAL_CONTROL message stream from Pixhawk...")
@@ -221,10 +250,64 @@ class MavlinkBridgeSender(Node):
             f"Published Battery: Current={ros_msg.current:.2f}A, Remaining={ros_msg.percentage:.0%}"
         )
 
+    def _odom_pose_cb(self, msg: Odometry) -> None:
+        """Track vertical position for optional hydrostatic monitor pressure (ENU z up)."""
+        self._odom_pose_z_enu = float(msg.pose.pose.position.z)
+
+    def _hydrostatic_absolute_pa(self) -> Optional[float]:
+        if self._odom_pose_z_enu is None:
+            return None
+        if not self.get_parameter(
+            "hydrostatic_pressure_fallback"
+        ).get_parameter_value().bool_value:
+            return None
+        z = self._odom_pose_z_enu
+        surface_z = float(
+            self.get_parameter("hydrostatic_surface_z_enu")
+            .get_parameter_value()
+            .double_value
+        )
+        rho = float(
+            self.get_parameter("hydrostatic_water_density")
+            .get_parameter_value()
+            .double_value
+        )
+        p0 = float(
+            self.get_parameter("hydrostatic_air_pressure_pa")
+            .get_parameter_value()
+            .double_value
+        )
+        # Depth below free surface: positive when pose.z is below surface (typical ENU sub).
+        depth_m = max(0.0, surface_z - z)
+        return p0 + rho * _GRAVITY * depth_m
+
+    def _publish_hydrostatic_fallback_throttled(self) -> None:
+        """Publish approximate absolute pressure for RViz/monitor when FCU baro is nonsense."""
+        now_ns = self.get_clock().now().nanoseconds
+        if now_ns - self._last_hydro_fallback_pub_ns < 250_000_000:
+            return
+        pa = self._hydrostatic_absolute_pa()
+        if pa is None:
+            return
+        self._last_hydro_fallback_pub_ns = now_ns
+        ros_msg = FluidPressure()
+        ros_msg.fluid_pressure = float(pa)
+        ros_msg.variance = _HYDROSTATIC_VARIANCE_PA2
+        self.scaled_pressure_publisher.publish(ros_msg)
+        if not self._hydro_fallback_info_logged:
+            self._hydro_fallback_info_logged = True
+            self.logger.info(
+                "Publishing hydrostatic pressure estimate on /pixhawk/scaled_pressure "
+                "(MAVLink baro invalid). Tune hydrostatic_surface_z_enu to match your world. "
+                "ArduPilot/EKF may still be unhealthy until JSON/SITL altitude is fixed upstream."
+            )
+
     def handle_scaled_pressure(self, msg):
         """MAVLink press_abs is hPa; ROS sensor_msgs/FluidPressure is Pa (×100).
 
-        Prefer ignoring invalid extra baro instances (SCALED_PRESSURE2/3) — see ArduPilot PR #9966.
+        Invalid readings on **SCALED_PRESSURE** (primary) usually mean ArduSub SITL baro math
+        got a bad ``sitl_fdm.altitude`` from the Gazebo JSON link (see AP_Baro_SITL.cpp), not a
+        ROS parsing bug.
         """
         hpa = float(msg.press_abs)
         if not (
@@ -237,12 +320,15 @@ class MavlinkBridgeSender(Node):
                 self.logger.warning(
                     f"Ignoring {msg.get_type()} press_abs={hpa!r} hPa "
                     f"(valid range {_PRESS_ABS_HPA_MIN}–{_PRESS_ABS_HPA_MAX} hPa). "
-                    "Extra baro slots often publish garbage; primary is SCALED_PRESSURE."
+                    "ArduSub SITL: check Gazebo↔JSON↔ArduPilot altitude (often NED z / home). "
+                    "Using hydrostatic fallback from /odom if enabled."
                 )
+            self._publish_hydrostatic_fallback_throttled()
             return
 
         ros_msg = FluidPressure()
         ros_msg.fluid_pressure = hpa * 100.0
+        ros_msg.variance = 0.0
         self.scaled_pressure_publisher.publish(ros_msg)
         self.logger.debug(
             f"Published pressure (abs): {ros_msg.fluid_pressure:.1f} Pa ({msg.get_type()} press_abs hPa={hpa})"

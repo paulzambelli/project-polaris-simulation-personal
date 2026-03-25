@@ -103,6 +103,10 @@ EK3_SRC1_YAW 6        # External nav
 # Reduce simulated barometer noise
 SIM_BARO_RND 0.02
 
+# Huge negative SCALED_PRESSURE on primary baro = bad SITL altitude in AP_Baro_SITL (JSON/Gazebo
+# FDM), not ROS. Fix the plugin/frame (see ArduPilot JSON SITL docs) or try: SIM_BARO_DISABLE 1
+# (may affect EKF). mavlink_bridge can publish a hydrostatic estimate from /odom for the monitor.
+
 # SITL second UART: MAVLink on TCP 5762 (SERIAL1) for a companion / second GCS link.
 # See https://ardupilot.org/dev/docs/learning-ardupilot-uarts-and-the-console.html
 SERIAL1_PROTOCOL 2
