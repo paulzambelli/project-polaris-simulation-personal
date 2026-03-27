@@ -52,7 +52,7 @@ class OutputMonitor(Node):
             FluidPressure, "/pixhawk/scaled_pressure", self.pressure_cb, 10
         )
 
-        self.timer = self.create_timer(0.2, self.print_dashboard)  # 5Hz refresh rate
+        self.timer = self.create_timer(0.5, self.print_dashboard)  # 5Hz refresh rate
 
     def heartbeat_cb(self, msg):
         fields = {}
