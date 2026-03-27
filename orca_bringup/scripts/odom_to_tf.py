@@ -7,6 +7,7 @@ from urllib import request
 import rclpy
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from tf2_ros import TransformBroadcaster
 from geometry_msgs.msg import TransformStamped
 
@@ -26,11 +27,12 @@ class OdomToTfNode(Node):
         self._last_odom_stamp_sec = 0.0
         self._health_timer = self.create_timer(2.0, self._health_log)
         self.tf_broadcaster = TransformBroadcaster(self)
+        # Match ros_gz_bridge / Gazebo-style odometry (best-effort); default QoS is reliable and will not connect.
         self.odom_sub = self.create_subscription(
             Odometry,
             odom_topic,
             self._on_odom,
-            10
+            qos_profile_sensor_data,
         )
         # #region agent log
         self._debug_log(
@@ -126,9 +128,13 @@ class OdomToTfNode(Node):
 def main() -> None:
     rclpy.init()
     node = OdomToTfNode()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':

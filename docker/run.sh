@@ -27,7 +27,10 @@ docker run -it \
     -v "/tmp/.X11-unix:/tmp/.X11-unix" \
     -v "/etc/localtime:/etc/localtime:ro" \
     -v "/dev/input:/dev/input" \
+    --device=/dev/dri \
+    --group-add video \
     --privileged \
     --security-opt seccomp=unconfined \
     --gpus all \
-    orca4:latest
+    orca4:latest \
+    tmux new-session -A -s orca

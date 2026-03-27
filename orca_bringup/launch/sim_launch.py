@@ -32,7 +32,7 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription, TimerAction
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
@@ -152,11 +152,14 @@ def generate_launch_description():
         ),
 
 
-        # Publish ground truth pose from Ignition Gazebo
+        # Gazebo sim time -> ROS /clock (required when use_sim_time is true).
+        # Without this, Nav2 lifecycle often stops after planner_server: behavior_server never
+        # configures and /follow_waypoints has no server. Use GZ_TO_ROS only; see ros_gz_bridge README.
         Node(
             package='ros_gz_bridge',
             executable='parameter_bridge',
             arguments=[
+                '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
                 '/model/orca4/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
             ],
             remappings=[
@@ -185,16 +188,23 @@ def generate_launch_description():
             condition=UnlessCondition(LaunchConfiguration('base')),
         ),
 
-        # Bring up Orca and Nav2 nodes
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(orca_bringup_dir, 'launch', 'bringup.py')),
-            launch_arguments={
-                'base': LaunchConfiguration('base'),
-                'comms': LaunchConfiguration('comms'),
-                'nav': LaunchConfiguration('nav'),
-                'use_sim_time': use_sim_time,
-                'orca_params_file': orca_params_file,
-            }.items(),
+        # Delay bringup so /clock and /tf exist before lifecycle_manager autostart. Otherwise
+        # behavior_server can fail configure while controller/planner already sit in inactive.
+        TimerAction(
+            period=3.0,
+            actions=[
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(
+                        os.path.join(orca_bringup_dir, 'launch', 'bringup.py')),
+                    launch_arguments={
+                        'base': LaunchConfiguration('base'),
+                        'comms': LaunchConfiguration('comms'),
+                        'nav': LaunchConfiguration('nav'),
+                        'use_sim_time': use_sim_time,
+                        'orca_params_file': orca_params_file,
+                    }.items(),
+                ),
+            ],
         ),
     ])
 

@@ -1,6 +1,9 @@
 import rclpy
 from rclpy.node import Node
-import logging, os
+from rclpy.qos import qos_profile_sensor_data
+import logging
+import os
+import time
 from datetime import datetime
 
 os.environ["MAVLINK20"] = "1"
@@ -68,9 +71,27 @@ class MavlinkBridgeReceiver(Node):
         # configures serial port the pixhawk is connected to and the baud rate
         mavlink_url = os.getenv("MAVLINK_RECEIVER_URL", MAVLINK_RECEIVER_URL)
         mavlink_baud = int(os.getenv("MAVLINK_RECEIVER_BAUD", str(MAVLINK_RECEIVER_BAUD)))
-        self.port = mavutil.mavlink_connection(
-            mavlink_url, baud=mavlink_baud
-        )  # For sending commands to Pixhawk
+        max_attempts = max(1, int(os.getenv("MAVLINK_RECEIVER_CONNECT_RETRIES", "90")))
+        retry_delay = float(os.getenv("MAVLINK_RECEIVER_CONNECT_DELAY_SEC", "1.0"))
+        # SITL often starts after ros2_receiver; avoid exit+respawn storm on connection refused.
+        self.port = None
+        last_err: OSError | None = None
+        for attempt in range(1, max_attempts + 1):
+            try:
+                self.port = mavutil.mavlink_connection(mavlink_url, baud=mavlink_baud)
+                break
+            except (ConnectionRefusedError, OSError) as e:
+                last_err = e
+                if attempt == 1 or attempt % 5 == 0:
+                    self.get_logger().warning(
+                        f"MAVLink connect {mavlink_url!r} failed ({e}); "
+                        f"retry {attempt}/{max_attempts} in {retry_delay}s (waiting for SITL SERIAL1)..."
+                    )
+                time.sleep(retry_delay)
+        if self.port is None:
+            raise RuntimeError(
+                f"Could not open MAVLink {mavlink_url!r} after {max_attempts} attempts"
+            ) from last_err
         # self.port_in = mavutil.mavlink_connection(
         #     "/dev/ttyTHS1", baud=57600
         # )  # For receiving messages from Pixhawk (e.g., heartbeats, status)
@@ -124,7 +145,7 @@ class MavlinkBridgeReceiver(Node):
                 Odometry,
                 "/odom",
                 self.external_odom_cb,
-                SUB_QOS_DEPTH,
+                qos_profile_sensor_data,
             )
             self.get_logger().info(
                 f"External nav: MAVLink ODOMETRY enabled from ROS topic /odom"
@@ -144,7 +165,7 @@ class MavlinkBridgeReceiver(Node):
             return
 
         channels = msg.data
-        self.get_logger().info(f"Received ROS2 RC override: {channels}")
+        self.get_logger().debug(f"Received ROS2 RC override: {channels}")
 
         # Send MAVLink RC_CHANNELS_OVERRIDE message
         # Arguments: target_system, target_component and the different RCOverride values in channels
@@ -205,10 +226,19 @@ class MavlinkBridgeReceiver(Node):
         # ROS Angular Z (CCW) -> NED Yaw Rate (CW) - Flip sign
         yaw_rate = -float(msg.angular.z)
 
-        # 2. Define the Type Mask
-        # Bits: 1,2,3 (Pos), 5 (Vel Y), 7,8,9 (Acc), 11 (Yaw Angle) are IGNORED
-        # Bits: 4 (Vel X), 6 (Vel Z), 12 (Yaw Rate) are USED
-        type_mask = 3031 # 0b0000101111010111
+        # 2. Type mask (ArduSub GCS_MAVLink_Sub.cpp): vel_ignore is true if ANY of
+        # MAVLINK_SET_POS_TYPE_MASK_VEL_IGNORE bits (vx,vy,vz) are set — so we must not
+        # set VY_IGNORE when commanding vx,vz; otherwise guided_set_velocity() is skipped.
+        m = mavutil.mavlink
+        type_mask = (
+            m.POSITION_TARGET_TYPEMASK_X_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_Y_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_Z_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_AX_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_AY_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_AZ_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_YAW_IGNORE
+        )
 
         # 3. Send to Pixhawk
         # Using MAV_FRAME_BODY_OFFSET_NED so "Forward" is relative to the sub's nose
@@ -362,7 +392,7 @@ class MavlinkBridgeReceiver(Node):
         """
         Input values: -1000 to 1000 (except heave, see below)
         """
-        self._file_logger.info(
+        self._file_logger.debug(
             f"Sending 4DOF command with control input: {control_input}"
         )
         surge, sway, heave, yaw = control_input
@@ -397,10 +427,10 @@ class MavlinkBridgeReceiver(Node):
         newer MAVLink 2.0 implementations. This has to be tested!
         Input values: -1000 to 1000 (except heave, see below)
         """
-        self.get_logger().info(
+        self.get_logger().debug(
             f"Sending 6DOF command with control input: {control_input}"
         )
-        self._file_logger.info(
+        self._file_logger.debug(
             f"Sending 6DOF command with control input: {control_input}"
         )
         surge, sway, heave, yaw, roll, pitch = control_input

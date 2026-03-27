@@ -43,3 +43,14 @@ export MAVLINK_RECEIVER_BAUD=57600
 ```
 
 If you only have **one** physical UART, run a **single** MAVLink client or multiplex via MAVProxy; two nodes opening the same serial port will conflict.
+
+## Invalid `SCALED_PRESSURE` (~−180000 hPa) in ArduSub JSON SITL
+
+`mavlink_bridge_publisher` forwards `press_abs` from MAVLink (hPa → Pa). If **even `SCALED_PRESSURE`** (primary baro) is a large negative value, ArduPilot’s **SITL barometer backend** is producing bad pressure from **`sitl_fdm.altitude`** (underwater model in `AP_Baro_SITL.cpp`), almost always because **Gazebo’s JSON pose/altitude** does not match what ArduPilot expects for the JSON link—not because the wrong `SCALED_PRESSURE2` slot was chosen.
+
+**In-repo mitigations**
+
+- **`mavlink_publisher`** (default on): `hydrostatic_pressure_fallback` publishes an approximate absolute pressure from **`/odom`** pose `z` (ENU: set `hydrostatic_surface_z_enu` to your free-surface height). High `variance` marks it as an estimate; **EKF/CRITICAL may persist** until the FDM chain is fixed.
+- **`orca_bringup/cfg/sub.parm`**: optional `SIM_BARO_DISABLE 1` (disables simulated baro; side effects on health/EKF possible).
+
+**Upstream fix**: align the Gazebo ↔ JSON interface with [SITL with JSON](https://ardupilot.org/dev/docs/sitl-with-JSON.html) / maintained `ardupilot_gazebo` plugins so NED position and home altitude stay consistent.

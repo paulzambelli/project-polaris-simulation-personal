@@ -20,6 +20,7 @@ RUN apt-get update \
     mlocate \
     software-properties-common \
     sudo \
+    tmux \
     wget \
     vim \
   && rm -rf /var/lib/apt/lists/*
@@ -118,6 +119,9 @@ WORKDIR /home/$USERNAME/colcon_ws
 RUN rosdep update \
   && rosdep install -y --from-paths . --ignore-src
 
+# setuptools 80+ removes setup.py develop flags (--uninstall, etc.) that colcon still passes for ament_python.
+RUN pip3 install --user "setuptools<80"
+
 # Build everything so far
 RUN [ "/bin/bash" , "-c" , "\
   source /opt/ros/humble/setup.bash \
@@ -134,8 +138,8 @@ COPY --chown=$USER_UID:$USER_GID comms/mavlink_bridge/package.xml src/orca4/comm
 RUN rosdep update \
   && rosdep install -y --from-paths . --ignore-src --skip-keys="pymavlink"
 
-# Install pymavlink manually
-RUN pip3 install pymavlink
+# Install pymavlink manually (keep setuptools<80 so colcon can build ament_python packages)
+RUN pip3 install --user "setuptools<80" pymavlink
 
 # Copy everything
 COPY --chown=$USER_UID:$USER_GID . src/orca4

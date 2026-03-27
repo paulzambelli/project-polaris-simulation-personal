@@ -82,7 +82,10 @@ RNGFND1_TYPE   1
 SERVO8_FUNCTION 7
 SERVO8_MAX 1900
 SERVO8_MIN 1100
-BARO_EXT_BUS 1
+
+# External I2C baro. On SITL, BARO_EXT_BUS 1 can yield invalid pressure and MAV_STATE_CRITICAL;
+# for Gazebo-only sim, comment this line or set BARO_EXT_BUS 0. Re-enable for real Bar30 hardware.
+BARO_EXT_BUS 0
 
 # Enable external nav
 # From https://ardupilot.org/copter/docs/common-vio-tracking-camera.html
@@ -99,6 +102,10 @@ EK3_SRC1_YAW 6        # External nav
 
 # Reduce simulated barometer noise
 SIM_BARO_RND 0.02
+
+# Huge negative SCALED_PRESSURE on primary baro = bad SITL altitude in AP_Baro_SITL (JSON/Gazebo
+# FDM), not ROS. Fix the plugin/frame (see ArduPilot JSON SITL docs) or try: SIM_BARO_DISABLE 1
+# (may affect EKF). mavlink_bridge can publish a hydrostatic estimate from /odom for the monitor.
 
 # SITL second UART: MAVLink on TCP 5762 (SERIAL1) for a companion / second GCS link.
 # See https://ardupilot.org/dev/docs/learning-ardupilot-uarts-and-the-console.html
