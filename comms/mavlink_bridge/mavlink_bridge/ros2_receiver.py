@@ -135,7 +135,7 @@ class MavlinkBridgeReceiver(Node):
 
         # For sending Odometry
         self.declare_parameter("enable_external_odom", False)
-        self.declare_parameter("external_odom_max_rate_hz", 50.0)
+        self.declare_parameter("external_odom_max_rate_hz", 200.0) # previously 50 Hz
         self.declare_parameter("external_odom_quality", 100)
 
         self._external_odom_last_send_ns = 0
