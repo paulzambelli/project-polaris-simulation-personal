@@ -19,6 +19,7 @@ from nav2_msgs.action import FollowWaypoints
 from rclpy.action import ActionClient
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.parameter import Parameter
+from rclpy.signals import SignalHandlerOptions
 from std_msgs.msg import Bool, String
 
 from load_wsg84_points_to_waypoints import process_coordinates
@@ -28,6 +29,40 @@ class SendGoalResult(Enum):
     SUCCESS = 0
     FAILURE = 1
     CANCELED = 2
+
+
+def publish_manual_and_spin(executor, node, mode_pub, spins: int = 40) -> None:
+    """Flush MANUAL mode. Swallows RCLError if the context is already shutting down."""
+    if mode_pub is None or node is None or executor is None:
+        return
+    try:
+        mode_pub.publish(String(data='MANUAL'))
+    except Exception:
+        return
+    for _ in range(spins):
+        if not rclpy.ok():
+            break
+        try:
+            executor.spin_once(timeout_sec=0.05)
+        except Exception:
+            break
+
+
+def publish_disarm_and_spin(executor, node, arm_pub, spins: int = 30) -> None:
+    """Flush disarm (arm_cmd False). Swallows RCLError if the context is invalid."""
+    if arm_pub is None or node is None or executor is None:
+        return
+    try:
+        arm_pub.publish(Bool(data=False))
+    except Exception:
+        return
+    for _ in range(spins):
+        if not rclpy.ok():
+            break
+        try:
+            executor.spin_once(timeout_sec=0.05)
+        except Exception:
+            break
 
 
 def default_mission_csv_path() -> str:
@@ -73,7 +108,7 @@ def wait_for_follow_waypoints(executor, action_client, timeout_sec: float = 300.
     return False
 
 
-def send_goal(executor, action_client, send_goal_msg) -> SendGoalResult:
+def send_goal(executor, action_client, send_goal_msg, node, mode_pub, arm_pub) -> SendGoalResult:
     goal_handle = None
     try:
         if not wait_for_follow_waypoints(executor, action_client):
@@ -111,6 +146,11 @@ def send_goal(executor, action_client, send_goal_msg) -> SendGoalResult:
             raise
         if (GoalStatus.STATUS_ACCEPTED == goal_handle.status or
                 GoalStatus.STATUS_EXECUTING == goal_handle.status):
+            # Send MANUAL before waiting on cancel: default rclpy SIGINT handling (if enabled)
+            # invalidates the context during long spin_until_future_complete, breaking publish.
+            print('>>> Interrupted, setting Pixhawk mode to MANUAL <<<')
+            publish_manual_and_spin(executor, node, mode_pub, spins=25)
+
             print('Canceling goal...')
             cancel_future = goal_handle.cancel_goal_async()
             executor.spin_until_future_complete(cancel_future)
@@ -121,16 +161,20 @@ def send_goal(executor, action_client, send_goal_msg) -> SendGoalResult:
                 if exc is not None:
                     raise RuntimeError('Exception while canceling goal: {!r}'.format(exc)) from exc
                 print('Cancel finished without response (shutdown?)')
-                return SendGoalResult.CANCELED
 
-            if len(cancel_response.goals_canceling) == 0:
+            elif len(cancel_response.goals_canceling) == 0:
                 raise RuntimeError('Failed to cancel goal')
-            if len(cancel_response.goals_canceling) > 1:
+            elif len(cancel_response.goals_canceling) > 1:
                 raise RuntimeError('More than one goal canceled')
-            if cancel_response.goals_canceling[0].goal_id != goal_handle.goal_id:
+            elif cancel_response.goals_canceling[0].goal_id != goal_handle.goal_id:
                 raise RuntimeError('Canceled goal with incorrect goal ID')
+            else:
+                print('Goal canceled')
 
-            print('Goal canceled')
+            publish_manual_and_spin(executor, node, mode_pub, spins=15)
+
+            print('>>> Interrupted, disarming <<<')
+            publish_disarm_and_spin(executor, node, arm_pub, spins=30)
             return SendGoalResult.CANCELED
         raise
 
@@ -176,7 +220,9 @@ def main() -> None:
     goal = FollowWaypoints.Goal()
     goal.poses = poses
 
-    rclpy.init(args=ros_args)
+    # Do not install rclpy SIGINT/SIGTERM handlers: they call shutdown() and invalidate the
+    # context while we are still canceling the Nav2 goal, so /pixhawk/mode_cmd publish fails.
+    rclpy.init(args=ros_args, signal_handler_options=SignalHandlerOptions.NO)
 
     node = None
     follow_waypoints = None
@@ -215,27 +261,32 @@ def main() -> None:
             executor.spin_once(timeout_sec=0.05)
 
         print('>>> Executing mission <<<')
-        send_goal(executor, follow_waypoints, goal)
+        mission_result = send_goal(executor, follow_waypoints, goal, node, mode_pub, arm_pub)
 
-        if rclpy.ok():
+        if mission_result == SendGoalResult.SUCCESS and rclpy.ok():
             print('>>> Disarming <<<')
             arm_pub.publish(Bool(data=False))
             time.sleep(0.5)
             print('>>> Setting Pixhawk mode to MANUAL <<<')
             mode_pub.publish(String(data='MANUAL'))
             rclpy.spin_once(node, timeout_sec=0.2)
+        elif mission_result == SendGoalResult.CANCELED and rclpy.ok():
+            # send_goal already sent MANUAL + disarm; optional flush if drops occurred.
+            print('>>> Post-cancel flush (MANUAL + disarm) <<<')
+            publish_manual_and_spin(executor, node, mode_pub, spins=15)
+            publish_disarm_and_spin(executor, node, arm_pub, spins=20)
 
         print('>>> Mission complete <<<')
 
     except KeyboardInterrupt:
-        if arm_pub is not None and rclpy.ok():
-            print('>>> Interrupted, disarming <<<')
-            arm_pub.publish(Bool(data=False))
-            time.sleep(0.3)
-        if mode_pub is not None and executor is not None and node is not None and rclpy.ok():
-            print('>>> Interrupted, setting Pixhawk mode to MANUAL <<<')
-            mode_pub.publish(String(data='MANUAL'))
-            executor.spin_once(timeout_sec=0.2)
+        # Interrupt before goal accepted, or re-raised from send_goal — MANUAL then disarm.
+        if executor is not None and node is not None:
+            if mode_pub is not None:
+                print('>>> Interrupted, setting Pixhawk mode to MANUAL <<<')
+                publish_manual_and_spin(executor, node, mode_pub)
+            if arm_pub is not None:
+                print('>>> Interrupted, disarming <<<')
+                publish_disarm_and_spin(executor, node, arm_pub)
 
     finally:
         if follow_waypoints is not None:
@@ -249,7 +300,7 @@ def main() -> None:
         if node is not None:
             node.destroy_node()
 
-    rclpy.shutdown()
+    rclpy.try_shutdown()
 
 
 if __name__ == '__main__':
