@@ -20,6 +20,8 @@ controller_server:
       tick_rate: 20.0
       x_error: 0.0
       yaw_error: 0.0
+      # std_msgs/Float64: pure_pursuit_cross_track_xy, pure_pursuit_vertical_error, pure_pursuit_yaw_error
+      publish_tracking_error: true
 
     GoalChecker3D:
       plugin: "orca_nav2/GoalChecker3D"

@@ -62,7 +62,6 @@ def generate_launch_description():
 
     ardusub_params_file = os.path.join(orca_bringup_dir, 'cfg', 'sub.parm')
     orca_params_file = os.path.join(orca_bringup_dir, 'params', 'sim_orca_params.yaml')
-    rosbag2_record_qos_file = os.path.join(orca_bringup_dir, 'params', 'rosbag2_record_qos.yaml')
     rviz_file = os.path.join(orca_bringup_dir, 'cfg', 'sim_launch.rviz')
     world_file = os.path.join(orca_description_dir, 'worlds', 'sand.world')
     ardusub_home = _default_ardusub_home(orca_bringup_dir)
@@ -112,21 +111,13 @@ def generate_launch_description():
             description='Launch rviz?',
         ),
 
-        # Bag useful topics
+        # Bag only controller tracking errors (from PurePursuitController3D, std_msgs/Float64).
         ExecuteProcess(
             cmd=[
                 'ros2', 'bag', 'record',
-                '--qos-profile-overrides-path', rosbag2_record_qos_file,
-                '--include-hidden-topics',
-                '/cmd_vel',
-                '/pixhawk/arm_cmd',
-                '/pixhawk/cmd_vel',
-                '/pixhawk/mode_cmd',
-                '/model/orca4/odometry',
-                '/pid_z',
-                '/rosout',
-                '/tf',
-                '/tf_static',
+                '/pure_pursuit_cross_track_xy',
+                '/pure_pursuit_vertical_error',
+                '/pure_pursuit_yaw_error',
             ],
             output='screen',
             condition=IfCondition(LaunchConfiguration('bag')),
