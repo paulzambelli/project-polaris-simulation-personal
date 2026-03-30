@@ -147,6 +147,9 @@ RUN pip3 install --user "setuptools<80" pymavlink
 # Copy everything
 COPY --chown=$USER_UID:$USER_GID . src/orca4
 
+# Windows checkouts often use CRLF; bash then errors ($'\r', unexpected EOF on setup.bash).
+RUN find "/home/$USERNAME/colcon_ws/src/orca4" -type f \( -name '*.sh' -o -name '*.bash' \) -exec sed -i 's/\r$//' {} +
+
 # Build everything
 RUN [ "/bin/bash" , "-c" , "\
   source /opt/ros/humble/setup.bash \

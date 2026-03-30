@@ -7,15 +7,55 @@ To build the docker image:
 
 Build and run the `orca4:laptop` image (no `nvidia-container-toolkit` and no `--gpus`):
 
+Go to folders on laptop.
 ~~~
-./build_laptop.sh
-./run_laptop.sh
+cd "/mnt/c/Users/pzzsc/Documents/FP_official_Programming/project-polaris-simulation-personal"
+~~~
+
+```bash
+sed -i 's/\r$//' docker/*.sh
+```
+
+If never builded before:
+~~~
+./docker/build_laptop.sh
+~~~
+
+Then A
+~~~
+cd /home/user/ros2_ws
+~~~ 
+
+B
+~~~
+colcon build --symlink-install --packages-select <your_package_name>
+~~~
+
+C
+~~~
+source install/setup.bash
+~~~
+
+to run docker: (starts tmux automatically)
+~~~
+./docker/run_laptop.sh
+~~~
+ 
+to run on a different terminal:
+~~~
+docker exec -it orca4 bash
+~~~
+
+On Nvidia:
+~~~
+./docker/build.sh
+./docker/run.sh
 ~~~
 
 Inside the container, a typical headless-friendly sim (no Gazebo GUI client) is:
 
 ~~~
-ros2 launch orca_bringup sim_launch.py gzclient:=False
+ros2 launch orca_bringup sim_launch.py gzclient:=False bag:=True
 ~~~
 
 The container still passes `/dev/dri` and the `video` group so Mesa can use the integrated GPU when you do open a GUI (RViz or `gzclient:=True`). The main `Dockerfile` / `run.sh` path keeps NVIDIA environment variables and `--gpus all` for discrete NVIDIA GPUs.
