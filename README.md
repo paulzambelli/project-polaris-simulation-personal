@@ -38,7 +38,7 @@ See [orca_nav2](orca_nav2/README.md) for details.
 
 ## Installation
 
-See the [Dockerfile](docker/Dockerfile) for installation details.
+See the [Dockerfile](docker/Dockerfile) for installation details. For laptops without an NVIDIA GPU, use [docker/Dockerfile.laptop](docker/Dockerfile.laptop) and the `build_laptop.sh` / `run_laptop.sh` scripts (described in [docker/README.md](docker/README.md)).
 
 Install these packages:
 * [ROS2 Humble](https://docs.ros.org/en/humble/Installation.html)

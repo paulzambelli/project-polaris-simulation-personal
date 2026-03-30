@@ -1,3 +1,7 @@
+# Same stack as Dockerfile, without NVIDIA-specific image env vars.
+# Run with run_laptop.sh (no --gpus). Intel/AMD use host Mesa via /dev/dri.
+# Typical sim: ros2 launch orca_bringup sim_launch.py gzclient:=False
+
 FROM osrf/ros:humble-desktop AS base
 
 ARG USERNAME=orca4
@@ -39,7 +43,7 @@ RUN apt-get update \
 # Ref https://github.com/ArduPilot/ardupilot_gazebo#Rosdep
 RUN wget https://raw.githubusercontent.com/osrf/osrf-rosdep/master/gz/00-gazebo.list -O /etc/ros/rosdep/sources.list.d/00-gazebo.list
 
-# OpenGL / X11 base libs (host GPU via /dev/dri; use run.sh + --gpus all for NVIDIA)
+# OpenGL / X11 base libs (Mesa on host through /dev/dri when you need GUI)
 RUN apt-get update \
  && apt-get -y --quiet --no-install-recommends install \
     libglvnd0 \
@@ -50,8 +54,6 @@ RUN apt-get update \
     libx11-6 \
   && rm -rf /var/lib/apt/lists/*
 
-ENV NVIDIA_VISIBLE_DEVICES=all
-ENV NVIDIA_DRIVER_CAPABILITIES=graphics,utility,compute
 ENV QT_X11_NO_MITSHM=1
 
 # Install some ardupilot and ardupilot_gazebo prereqs
