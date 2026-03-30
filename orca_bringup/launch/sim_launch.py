@@ -111,13 +111,16 @@ def generate_launch_description():
             description='Launch rviz?',
         ),
 
-        # Bag only controller tracking errors (from PurePursuitController3D, std_msgs/Float64).
+        # Bag PurePursuitController3D tracking: errors + pose/closest/twist (same publish_tracking_error gate).
         ExecuteProcess(
             cmd=[
                 'ros2', 'bag', 'record',
                 '/pure_pursuit_cross_track_xy',
                 '/pure_pursuit_vertical_error',
                 '/pure_pursuit_yaw_error',
+                '/pure_pursuit_closest_point_map',
+                '/pure_pursuit_robot_pose_map',
+                '/pure_pursuit_robot_twist',
             ],
             output='screen',
             condition=IfCondition(LaunchConfiguration('bag')),

@@ -92,7 +92,7 @@ controller_server:
       # [(1 - yaw_error_) * yaw_vel_, (1 + yaw_error_) * yaw_vel_]
       x_error: 0.5
       yaw_error: 0.6
-      # std_msgs/Float64: cross_track_xy, vertical_error, yaw_error (rad)
+      # Tracking topics: 3x Float64 + PointStamped + PoseStamped + TwistStamped (see README)
       publish_tracking_error: true
 
 controller_server_rclcpp_node:

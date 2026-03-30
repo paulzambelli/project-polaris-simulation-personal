@@ -75,88 +75,63 @@ You can use MAVProxy to drive the sub around the seafloor and build a map.
 The Nav2 plugin `orca_nav2/PurePursuitController3D` can publish three diagnostics
 (`std_msgs/msg/Float64`) while it is actively following a plan:
 
-| Topic | Meaning |
-|-------|---------|
-| `/pure_pursuit_cross_track_xy` | Horizontal distance from the robot to the plan polyline (m) |
-| `/pure_pursuit_vertical_error` | `robot_z - path_z` at the closest XY point (m) |
-| `/pure_pursuit_yaw_error` | Shortest angle from path heading to robot yaw (rad, about `[-π, π]`) |
+| Topic | Type | Meaning |
+|-------|------|---------|
+| `/pure_pursuit_cross_track_xy` | `std_msgs/Float64` | Horizontal distance to plan polyline (m) |
+| `/pure_pursuit_vertical_error` | `std_msgs/Float64` | `robot_z - path_z` at closest XY point (m) |
+| `/pure_pursuit_yaw_error` | `std_msgs/Float64` | Shortest angle path heading → robot yaw (rad, about `[-π, π]`) |
+| `/pure_pursuit_closest_point_map` | `geometry_msgs/PointStamped` | Closest point on path in **map** (header `frame_id` = plan frame) |
+| `/pure_pursuit_robot_pose_map` | `geometry_msgs/PoseStamped` | Robot pose in **map** |
+| `/pure_pursuit_robot_twist` | `geometry_msgs/TwistStamped` | Twist Nav2 passes in (usually from odometry; header frame matches robot pose frame) |
 
-Enable/disable with the controller plugin parameter `publish_tracking_error` in
-[`params/nav2_params.yaml`](params/nav2_params.yaml) (e.g. under `LongStraightLine`).
+Toggle with `publish_tracking_error` in [`params/nav2_params.yaml`](params/nav2_params.yaml) (e.g. under `LongStraightLine`).
 
-**Important:** Paths below use a typical **Orca4 Docker** layout: user `orca4`, workspace
-`/home/orca4/colcon_ws`. If your image uses a different user or mount, replace those paths.
+[`sim_launch.py`](launch/sim_launch.py) with `bag:=True` records **only** these six topics (no `/tf`, `/odom`, etc.).
 
-### What runs where
-
-| Location | What you do there |
-|----------|-------------------|
-| **Inside Docker** | Build (`colcon build`), `source install/setup.bash`, launch sim, run missions, run `ros2 bag …` / `export_tracking_bag_csv.py`. Bags and CSVs are created **on the container filesystem** under your workspace (e.g. `~/colcon_ws`). |
-| **On the Linux host** | `docker ps`, `docker cp` (and similar) to **copy** folders from the container to the host. The `docker` CLI is **not** available inside the container. |
-| **Any machine (no ROS)** | Open the copied **CSV files** with pandas, R, Excel, etc. |
-
----
+**Important:** Paths below assume a typical **Orca4 Docker** layout: user `orca4`, workspace `/home/orca4/colcon_ws`.
 
 ### A. Inside the Docker container (step by step)
 
-1. **Open a shell in the container** (however you usually do: `docker exec -it orca4 bash`, VS Code Dev Container, etc.).
+**Important:** Paths below use a typical **Orca4 Docker** layout: user `orca4`, workspace
+`/home/orca4/colcon_ws`. If your image uses a different user or mount, replace those paths.
+``
+0. start docker as usual
 
-2. **Go to your ROS 2 workspace** (example):
-   ```bash
-   cd ~/colcon_ws
-   ```
-
-3. **Build packages that contain the controller and scripts** (after code changes):
-   ```bash
-   source /opt/ros/humble/setup.bash
-   colcon build --packages-select orca_nav2 orca_bringup
-   source install/setup.bash
-   ```
-
-4. **Start simulation with bag recording**  
+1. **Start simulation with bag recording**  
    [`sim_launch.py`](launch/sim_launch.py) with `bag:=True` starts `ros2 bag record` for **only** the three topics above (no `/tf`, `/odom`, etc.):
    ```bash
    ros2 launch orca_bringup sim_launch.py bag:=True
    ```
    Leave this running in that terminal.
 
-5. **Run a mission** (second terminal **inside the same container**, with workspace sourced):
+2. **Run a mission** (second terminal **inside the same container**, with workspace sourced):
    ```bash
-   source /opt/ros/humble/setup.bash
-   source ~/colcon_ws/install/setup.bash
    ros2 run orca_bringup WSG84_mission_starter.py
    ```
-   (Or your usual mission flow.) The topics are only published while Nav2’s controller is **active** and following a path.
 
-6. **Stop cleanly**  
-   In the launch terminal, press **Ctrl+C** once and wait. That stops `ros2 bag record` so the bag is **closed** properly (avoid `kill -9`).
+4. **Stop cleanly:** Ctrl+C in the launch terminal; wait for `ros2 bag record` to exit.
 
-7. **Find the bag directory**  
-   The recorder creates a folder in the **current working directory** where you ran `ros2 launch` (usually `~/colcon_ws`):
+5. **Find the bag** (created under the directory where you ran `ros2 launch`, usually `~/colcon_ws`):
    ```bash
-   cd ~/colcon_ws
-   ls -lt
+   ls -lt (~/colcon_ws)
    ```
-   Look for `rosbag2_YYYY_MM_DD-HH_MM_SS`. It must contain `metadata.yaml` and a `.db3` (or `.mcap`) file.
+   Look for `rosbag2_YYYY_MM_DD-HH_MM_SS` with `metadata.yaml` inside.
 
 8. **Export to CSV** (still **inside** the container):
    ```bash
-   source /opt/ros/humble/setup.bash
-   source ~/colcon_ws/install/setup.bash
    ros2 run orca_bringup export_tracking_bag_csv.py ~/colcon_ws/rosbag2_YYYY_MM_DD-HH_MM_SS
    ```
-   Optional: write outputs somewhere else:
+   Optional output directory:
    ```bash
    ros2 run orca_bringup export_tracking_bag_csv.py ~/colcon_ws/rosbag2_YYYY_MM_DD-HH_MM_SS \
      -o ~/colcon_ws/exports/my_run
    ```
 
-9. **Exported files**  
-   By default the script creates a folder **`csv_export`** next to the bag (or under `-o`):
+7. **Exported files** (under `csv_export/` next to the bag, or `-o`):
 
-   - `tracking_errors_long.csv` — columns `time_sec`, `topic`, `data` (all three topics in one file)
-   - `tracking_errors_wide.csv` — columns `time_sec`, `cross_track_xy_m`, `vertical_error_m`, `yaw_error_rad`
-   - `tracking_export_README.txt` — short column reference
+   - **`tracking_errors_long.csv`** — all messages: `msg_type` is `float64`, `point`, `pose`, or `twist`; numeric fields in `v0`…`v12` (see `tracking_export_README.txt`).
+   - **`tracking_errors_wide.csv`** — one row per cross-track time; columns include the three errors plus closest XYZ, robot position + quaternion, and twist linear/angular (aligned with as-of merge).
+   - **`tracking_export_README.txt`** — column reference.
 
    Optional plot (needs matplotlib): add `--plot` to the `export_tracking_bag_csv.py` command.
 
@@ -177,7 +152,7 @@ Enable/disable with the controller plugin parameter `publish_tracking_error` in
 3. **Copy the `csv_export` folder** (adjust bag name to match yours):
    ```bash
    docker cp orca4:/home/orca4/colcon_ws/rosbag2_2026_03_28-18_07_19/csv_export \
-     ~/Downloads/orca_tracking_csv_export
+     ~/Downloads/orca_tracking_csv_export_NAME
    ```
    Or into your host project:
    ```bash
@@ -191,10 +166,6 @@ Enable/disable with the controller plugin parameter `publish_tracking_error` in
    docker cp orca4:/home/orca4/colcon_ws/rosbag2_2026_03_28-18_07_19 \
      ~/Downloads/rosbag2_2026_03_28-18_07_19
    ```
-
-5. **Bind mounts**  
-   If you started the container with `-v /host/path:/home/orca4/colcon_ws`, the bag and `csv_export` may **already** appear under `/host/path` on the host—no `docker cp` needed.
-
 ---
 
 ### C. Analysis without ROS (host or other repo)
@@ -223,7 +194,7 @@ No ROS 2 installation is required on that machine.
   You did not use `bag:=True`, or you launched from a **different** current directory—search:  
   `find ~ -maxdepth 3 -name metadata.yaml 2>/dev/null`
 
-- **`ros2 bag info` shows 0 messages** on the three topics  
+- **`ros2 bag info` shows 0 messages** on the tracking topics  
   Controller was not publishing (`publish_tracking_error: false`, or Nav2 not following a plan long enough).
 
 - **`docker cp` fails**  
@@ -232,8 +203,4 @@ No ROS 2 installation is required on that machine.
 - **ROS 1 `bagpy`**  
   Targets `.bag` files only; **not** ROS 2 rosbag2. Use `rosbag2_py` / `export_tracking_bag_csv.py` for folders with `metadata.yaml`.
 
-## Video pipeline
 
-The simulation uses Gazebo camera sensors to generate uncompressed 800x600 images in an
-ideal stereo configuration. The frame rate is throttled to 5Hz to reduce CPU load in ORB_SLAM2, but
-it can easily go higher.

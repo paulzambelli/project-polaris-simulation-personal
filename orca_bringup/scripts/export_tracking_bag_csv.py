@@ -3,31 +3,24 @@
 r"""
 Export PurePursuit tracking topics from a rosbag2 folder to plain CSV (no ROS needed to analyze CSVs).
 
-Rosbag2 layout (not Markdown): a *bag directory* contains
-  - metadata.yaml  — version, duration, topic list, storage backend id
-  - data files     — usually ``*.db3`` (SQLite3 plugin) or ``*.mcap`` (MCAP plugin)
+Rosbag2: a *bag directory* contains ``metadata.yaml`` plus ``*.db3`` or ``*.mcap``.
 
-This script reads the bag once (needs ``source install/setup.bash`` for rosbag2_py), then writes:
+Topics (when ``publish_tracking_error`` is true on PurePursuitController3D):
 
-  tracking_errors_long.csv
-      Columns: time_sec, topic, data
-      One row per message; easy to filter/pivot in pandas/R.
+  std_msgs/Float64: cross_track_xy, vertical_error, yaw_error
+  geometry_msgs/PointStamped: closest point on path (``pure_pursuit_closest_point_map``, frame = map)
+  geometry_msgs/PoseStamped: robot pose in map (``pure_pursuit_robot_pose_map``)
+  geometry_msgs/TwistStamped: robot twist from Nav2 odom (``pure_pursuit_robot_twist``, frame = robot pose frame)
 
-  tracking_errors_wide.csv
-      Columns: time_sec, cross_track_xy_m, vertical_error_m, yaw_error_rad
-      Rows aligned to cross-track timestamps; vertical/yaw use last sample at or before that time
-      (same controller tick → usually identical timestamps).
+Outputs:
 
+  tracking_errors_long.csv — unified long format (see README in export folder)
+  tracking_errors_wide.csv — one row per cross-track sample; errors + closest + pose + twist (as-of merged)
   tracking_export_README.txt
-      Short column reference for copying CSVs into another repo.
 
 Usage:
   source /opt/ros/humble/setup.bash && source install/setup.bash
   ros2 run orca_bringup export_tracking_bag_csv.py /path/to/rosbag2_folder
-  ros2 run orca_bringup export_tracking_bag_csv.py /path/to/bag -o ~/exports/run42
-
-Optional:
-  --plot   show matplotlib figure (requires matplotlib)
 """
 
 from __future__ import annotations
@@ -44,7 +37,29 @@ from typing import DefaultDict, List, Tuple
 TOPIC_CROSS = '/pure_pursuit_cross_track_xy'
 TOPIC_VERT = '/pure_pursuit_vertical_error'
 TOPIC_YAW = '/pure_pursuit_yaw_error'
-TOPICS = (TOPIC_CROSS, TOPIC_VERT, TOPIC_YAW)
+TOPIC_CLOSEST = '/pure_pursuit_closest_point_map'
+TOPIC_POSE = '/pure_pursuit_robot_pose_map'
+TOPIC_TWIST = '/pure_pursuit_robot_twist'
+
+TOPICS_FLOAT = (TOPIC_CROSS, TOPIC_VERT, TOPIC_YAW)
+LONG_HEADER = [
+    'time_sec',
+    'topic',
+    'msg_type',
+    'v0',
+    'v1',
+    'v2',
+    'v3',
+    'v4',
+    'v5',
+    'v6',
+    'v7',
+    'v8',
+    'v9',
+    'v10',
+    'v11',
+    'v12',
+]
 
 
 def _storage_id_from_metadata(bag_dir: Path) -> str:
@@ -56,12 +71,20 @@ def _storage_id_from_metadata(bag_dir: Path) -> str:
     return m.group(1) if m else 'sqlite3'
 
 
-def _read_bag_rows(bag_dir: Path) -> List[Tuple[float, str, float]]:
-    from rosbag2_py import ConverterOptions, SequentialReader, StorageOptions
+def _read_bag_mixed(bag_dir: Path):
+    from geometry_msgs.msg import PointStamped, PoseStamped, TwistStamped
     from rclpy.serialization import deserialize_message
+    from rosbag2_py import ConverterOptions, SequentialReader, StorageOptions
     from std_msgs.msg import Float64
 
-    want = set(TOPICS)
+    want = {
+        TOPIC_CROSS,
+        TOPIC_VERT,
+        TOPIC_YAW,
+        TOPIC_CLOSEST,
+        TOPIC_POSE,
+        TOPIC_TWIST,
+    }
     sid = _storage_id_from_metadata(bag_dir)
     storage_options = StorageOptions(uri=str(bag_dir), storage_id=sid)
     converter_options = ConverterOptions(
@@ -71,31 +94,53 @@ def _read_bag_rows(bag_dir: Path) -> List[Tuple[float, str, float]]:
     reader = SequentialReader()
     reader.open(storage_options, converter_options)
 
-    rows: List[Tuple[float, str, float]] = []
+    long_rows: List[List[object]] = []
+    float_scalar: DefaultDict[str, List[Tuple[float, float]]] = defaultdict(list)
+    closest: List[Tuple[float, Tuple[float, float, float]]] = []
+    pose: List[Tuple[float, Tuple[float, ...]]] = []
+    twist: List[Tuple[float, Tuple[float, ...]]] = []
+
     while reader.has_next():
         topic, data, t_ns = reader.read_next()
         if topic not in want:
             continue
-        msg = deserialize_message(data, Float64)
-        rows.append((t_ns * 1e-9, topic, msg.data))
-    rows.sort(key=lambda r: r[0])
-    return rows
+        t_sec = t_ns * 1e-9
+        if topic in TOPICS_FLOAT:
+            msg = deserialize_message(data, Float64)
+            float_scalar[topic].append((t_sec, msg.data))
+            row = [t_sec, topic, 'float64', msg.data] + [''] * 12
+            long_rows.append(row)
+        elif topic == TOPIC_CLOSEST:
+            msg = deserialize_message(data, PointStamped)
+            x, y, z = msg.point.x, msg.point.y, msg.point.z
+            closest.append((t_sec, (x, y, z)))
+            row = [t_sec, topic, 'point', x, y, z] + [''] * 9
+            long_rows.append(row)
+        elif topic == TOPIC_POSE:
+            msg = deserialize_message(data, PoseStamped)
+            p = msg.pose.position
+            o = msg.pose.orientation
+            tup = (p.x, p.y, p.z, o.x, o.y, o.z, o.w)
+            pose.append((t_sec, tup))
+            row = [t_sec, topic, 'pose', *tup] + [''] * 6
+            long_rows.append(row)
+        elif topic == TOPIC_TWIST:
+            msg = deserialize_message(data, TwistStamped)
+            l = msg.twist.linear
+            a = msg.twist.angular
+            tup = (l.x, l.y, l.z, a.x, a.y, a.z)
+            twist.append((t_sec, tup))
+            row = [t_sec, topic, 'twist', *tup] + [''] * 7
+            long_rows.append(row)
 
-
-def _split_by_topic(
-    rows: List[Tuple[float, str, float]],
-) -> DefaultDict[str, List[Tuple[float, float]]]:
-    out: DefaultDict[str, List[Tuple[float, float]]] = defaultdict(list)
-    for t_sec, topic, val in rows:
-        out[topic].append((t_sec, val))
-    return out
+    long_rows.sort(key=lambda r: r[0])
+    return long_rows, float_scalar, closest, pose, twist
 
 
 def _asof_backward(
     master: List[Tuple[float, float]],
     slave: List[Tuple[float, float]],
 ) -> List[float]:
-    """For each master time t, use last slave value with slave_t <= t (else NaN)."""
     if not master:
         return []
     slave = sorted(slave, key=lambda x: x[0])
@@ -110,74 +155,131 @@ def _asof_backward(
     return out
 
 
-def _write_long_csv(path: Path, rows: List[Tuple[float, str, float]]) -> None:
+def _asof_backward_tuple(
+    master: List[Tuple[float, float]],
+    slave: List[Tuple[float, Tuple[float, ...]]],
+    dim: int,
+) -> List[Tuple[float, ...]]:
+    if not master:
+        return []
+    slave = sorted(slave, key=lambda x: x[0])
+    j = 0
+    nan_t = tuple(float('nan') for _ in range(dim))
+    last = nan_t
+    out: List[Tuple[float, ...]] = []
+    for t, _ in master:
+        while j < len(slave) and slave[j][0] <= t:
+            last = slave[j][1]
+            j += 1
+        out.append(last)
+    return out
+
+
+def _write_long_csv(path: Path, rows: List[List[object]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open('w', newline='', encoding='utf-8') as f:
         w = csv.writer(f)
-        w.writerow(['time_sec', 'topic', 'data'])
+        w.writerow(LONG_HEADER)
         w.writerows(rows)
 
 
-def _write_wide_csv(path: Path, by_topic: DefaultDict[str, List[Tuple[float, float]]]) -> None:
-    master = sorted(by_topic.get(TOPIC_CROSS, []), key=lambda x: x[0])
-    vert = sorted(by_topic.get(TOPIC_VERT, []), key=lambda x: x[0])
-    yaw = sorted(by_topic.get(TOPIC_YAW, []), key=lambda x: x[0])
+def _write_wide_csv(
+    path: Path,
+    by_float: DefaultDict[str, List[Tuple[float, float]]],
+    closest: List[Tuple[float, Tuple[float, float, float]]],
+    pose: List[Tuple[float, Tuple[float, ...]]],
+    twist: List[Tuple[float, Tuple[float, ...]]],
+) -> None:
+    master = sorted(by_float.get(TOPIC_CROSS, []), key=lambda x: x[0])
+    vert = sorted(by_float.get(TOPIC_VERT, []), key=lambda x: x[0])
+    yaw = sorted(by_float.get(TOPIC_YAW, []), key=lambda x: x[0])
 
     path.parent.mkdir(parents=True, exist_ok=True)
+    header = [
+        'time_sec',
+        'cross_track_xy_m',
+        'vertical_error_m',
+        'yaw_error_rad',
+        'closest_x_m',
+        'closest_y_m',
+        'closest_z_m',
+        'robot_x_m',
+        'robot_y_m',
+        'robot_z_m',
+        'robot_qx',
+        'robot_qy',
+        'robot_qz',
+        'robot_qw',
+        'twist_linear_x',
+        'twist_linear_y',
+        'twist_linear_z',
+        'twist_angular_x',
+        'twist_angular_y',
+        'twist_angular_z',
+    ]
+
+    def fmt_num(x: float) -> object:
+        return '' if isinstance(x, float) and math.isnan(x) else x
+
     with path.open('w', newline='', encoding='utf-8') as f:
         w = csv.writer(f)
-        w.writerow(['time_sec', 'cross_track_xy_m', 'vertical_error_m', 'yaw_error_rad'])
+        w.writerow(header)
 
-        if master:
-            vcol = _asof_backward(master, vert)
-            ycol = _asof_backward(master, yaw)
-            for (t, cx), v, y in zip(master, vcol, ycol):
-                w.writerow([
-                    t,
-                    cx,
-                    v if not math.isnan(v) else '',
-                    y if not math.isnan(y) else '',
-                ])
+        if not master:
             return
 
-        # No cross-track topic: one row per union timestamp (unusual)
-        all_t = sorted({t for s in (vert, yaw) for t, _ in s})
-        pseudo = [(t, 0.0) for t in all_t]
-        vcol = _asof_backward(pseudo, vert)
-        ycol = _asof_backward(pseudo, yaw)
-        for t, v, y in zip(all_t, vcol, ycol):
-            w.writerow([
-                t,
-                '',
-                v if not math.isnan(v) else '',
-                y if not math.isnan(y) else '',
-            ])
+        vcol = _asof_backward(master, vert)
+        ycol = _asof_backward(master, yaw)
+        ccol = _asof_backward_tuple(master, closest, 3)
+        pcol = _asof_backward_tuple(master, pose, 7)
+        tcol = _asof_backward_tuple(master, twist, 6)
+
+        for (t, cx), v, y, c3, p7, t6 in zip(master, vcol, ycol, ccol, pcol, tcol):
+            w.writerow(
+                [
+                    t,
+                    cx,
+                    fmt_num(v),
+                    fmt_num(y),
+                    fmt_num(c3[0]),
+                    fmt_num(c3[1]),
+                    fmt_num(c3[2]),
+                    fmt_num(p7[0]),
+                    fmt_num(p7[1]),
+                    fmt_num(p7[2]),
+                    fmt_num(p7[3]),
+                    fmt_num(p7[4]),
+                    fmt_num(p7[5]),
+                    fmt_num(p7[6]),
+                    fmt_num(t6[0]),
+                    fmt_num(t6[1]),
+                    fmt_num(t6[2]),
+                    fmt_num(t6[3]),
+                    fmt_num(t6[4]),
+                    fmt_num(t6[5]),
+                ],
+            )
 
 
 def _write_readme(path: Path, bag_dir: Path) -> None:
-    text = f"""Tracking error CSV export
-============================
+    text = f"""Tracking export (CSV)
+=====================
 
-Source bag directory:
-  {bag_dir}
+Source bag: {bag_dir}
 
-Files in this folder:
-  tracking_errors_long.csv
-    time_sec   — recorder timestamp when the message was logged (seconds, float)
-    topic      — ROS topic name
-    data       — std_msgs/Float64 .data field
+tracking_errors_long.csv
+  Columns: {', '.join(LONG_HEADER)}
+  msg_type:
+    float64 — v0 is scalar error (.data)
+    point   — v0,v1,v2 = closest path point x,y,z (map frame, see bag headers)
+    pose    — v0..v6 = position x,y,z and orientation quaternion x,y,z,w (map)
+    twist   — v0..v5 = linear x,y,z then angular x,y,z (Nav2-reported body twist)
 
-  tracking_errors_wide.csv
-    time_sec             — same as cross-track samples (master clock for alignment)
-    cross_track_xy_m     — horizontal distance to path polyline (m)
-    vertical_error_m     — robot_z - path_z at closest XY point (m)
-    yaw_error_rad        — shortest angle path_heading → robot_yaw (rad), range about [-pi, pi]
+tracking_errors_wide.csv
+  One row per cross-track sample (time_sec). vertical/yaw/closest/pose/twist columns
+  use the last sample at or before that time (same controller tick → aligned).
 
-These CSV files are plain UTF-8 text. You can copy them to any machine or repo and load with
-pandas, R, Julia, Excel, etc. No ROS installation required on the analysis side.
-
-Rosbag2 originals are not CSV; they are metadata.yaml plus a storage file (.db3 / .mcap).
-This export was produced by orca_bringup/scripts/export_tracking_bag_csv.py
+Plain UTF-8; no ROS needed to analyze. Produced by export_tracking_bag_csv.py
 """
     path.write_text(text, encoding='utf-8')
 
@@ -189,14 +291,15 @@ def _maybe_plot(by_topic: DefaultDict[str, List[Tuple[float, float]]], title: st
         print('matplotlib not installed; skipping --plot.', file=sys.stderr)
         return
 
-    t0 = min((by_topic[t][0][0] for t in TOPICS if by_topic.get(t)), default=0.0)
+    topics = TOPICS_FLOAT
+    t0 = min((by_topic[t][0][0] for t in topics if by_topic.get(t)), default=0.0)
     labels = (
         'cross_track_xy (m)',
         'vertical_error (m)',
         'yaw_error (rad)',
     )
     fig, axes = plt.subplots(3, 1, sharex=True, figsize=(10, 7), constrained_layout=True)
-    for ax, topic, ylab in zip(axes, TOPICS, labels):
+    for ax, topic, ylab in zip(axes, topics, labels):
         series = by_topic.get(topic, [])
         if series:
             xs = [x - t0 for x, _ in series]
@@ -211,7 +314,7 @@ def _maybe_plot(by_topic: DefaultDict[str, List[Tuple[float, float]]], title: st
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description='Export tracking-error rosbag topics to CSV for offline analysis.',
+        description='Export PurePursuit tracking rosbag topics to CSV for offline analysis.',
     )
     parser.add_argument('bag', type=Path, help='rosbag2 directory (contains metadata.yaml)')
     parser.add_argument(
@@ -219,9 +322,9 @@ def main() -> int:
         '--output-dir',
         type=Path,
         default=None,
-        help='Directory for CSV + README (default: inside the bag folder)',
+        help='Output directory (default: <bag>/csv_export)',
     )
-    parser.add_argument('--plot', action='store_true', help='Plot with matplotlib')
+    parser.add_argument('--plot', action='store_true', help='Plot error scalars with matplotlib')
     args = parser.parse_args()
 
     bag_dir = args.bag.resolve()
@@ -230,10 +333,10 @@ def main() -> int:
         return 1
 
     try:
-        rows = _read_bag_rows(bag_dir)
+        long_rows, by_float, closest, pose, twist = _read_bag_mixed(bag_dir)
     except Exception as e:
         print(f'Failed to read bag: {e}', file=sys.stderr)
-        print('Source ROS 2 setup (rosbag2_py, rclpy).', file=sys.stderr)
+        print('Source ROS 2 setup (rosbag2_py, rclpy, geometry_msgs).', file=sys.stderr)
         return 1
 
     out_dir = (args.output_dir or (bag_dir / 'csv_export')).resolve()
@@ -243,18 +346,16 @@ def main() -> int:
     wide_path = out_dir / 'tracking_errors_wide.csv'
     readme_path = out_dir / 'tracking_export_README.txt'
 
-    _write_long_csv(long_path, rows)
-    by_topic = _split_by_topic(rows)
-    _write_wide_csv(wide_path, by_topic)
+    _write_long_csv(long_path, long_rows)
+    _write_wide_csv(wide_path, by_float, closest, pose, twist)
     _write_readme(readme_path, bag_dir)
 
-    print(f'Wrote {len(rows)} samples → {long_path}')
+    print(f'Wrote {len(long_rows)} long rows → {long_path}')
     print(f'Wide CSV → {wide_path}')
     print(f'Notes → {readme_path}')
-    print(f'Copy ``{out_dir}`` into another repo for analysis (CSVs only).')
 
     if args.plot:
-        _maybe_plot(by_topic, bag_dir.name)
+        _maybe_plot(by_float, bag_dir.name)
 
     return 0
 
