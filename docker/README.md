@@ -21,6 +21,11 @@ If never builded before:
 ./docker/build_laptop.sh
 ~~~
 
+to run docker: (starts tmux automatically)
+~~~
+./docker/run_laptop.sh
+~~~
+
 Then A
 ~~~
 cd /home/user/ros2_ws
@@ -36,11 +41,7 @@ C
 source install/setup.bash
 ~~~
 
-to run docker: (starts tmux automatically)
-~~~
-./docker/run_laptop.sh
-~~~
- 
+
 to run on a different terminal:
 ~~~
 docker exec -it orca4 bash

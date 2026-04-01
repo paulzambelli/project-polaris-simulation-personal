@@ -208,9 +208,15 @@ namespace orca_nav2
         closest_map = p;
         const double dx = rx - p.x;
         const double dy = ry - p.y;
-        cross_track_xy_m = std::sqrt(dx * dx + dy * dy);
-        vertical_error_m = rz - p.z;
         const double path_yaw = tf2::getYaw(plan_.poses[0].pose.orientation);
+
+        //For a direction in the cross-tracking error.
+        const double cp = std::cos(path_yaw)*dy - std::sin(path_yaw)*dx;
+        const double sign = (cp >= 0) ? 1.0 : -1.0;
+
+
+        cross_track_xy_m = sign * std::sqrt(dx * dx + dy * dy);
+        vertical_error_m = rz - p.z;        
         yaw_error_rad = angles::shortest_angular_distance(path_yaw, robot_yaw);
         return;
       }
@@ -247,14 +253,18 @@ namespace orca_nav2
           best_qz = qz;
           if (vv > 1e-12) {
             best_path_yaw = std::atan2(vy, vx);
+            const double cp = vx * wy - vy * wx;
+            best_sign = (cp >= 0.0) ? 1.0 : -1.0;
           } else {
             best_path_yaw = tf2::getYaw(plan_.poses[i].pose.orientation);
+            const double cp = std::cos(best_path_yaw) * wy - std::sin(best_path_yaw) * wx;
+            best_sign = (cp >= 0.0) ? 1.0 : -1.0;
           }
         }
       }
 
       if (std::isfinite(best_dist_sq)) {
-        cross_track_xy_m = std::sqrt(best_dist_sq);
+        cross_track_xy_m = best_sign * std::sqrt(best_dist_sq);
         vertical_error_m = rz - best_qz;
         yaw_error_rad = angles::shortest_angular_distance(best_path_yaw, robot_yaw);
         closest_map.x = best_qx;
