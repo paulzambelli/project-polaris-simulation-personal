@@ -33,7 +33,6 @@
 
 #include "orca_nav2/param_macro.hpp"
 #include "orca_nav2/path_tracking_utils.hpp"
-// Deleted: #include "orca_shared/util.hpp"
 #include "nav2_core/controller.hpp"
 #include "nav2_core/exceptions.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -146,7 +145,6 @@ namespace orca_nav2
     constexpr double yaw_vel_lower() const { return lower(yaw_vel_, yaw_error_); }
 
     // Return the first pose in the plan > lookahead distance away, or the last pose in the plan
-    // ADDED: Built-in safe TF2 Transform helper (Replaces orca_shared math)
     bool transform_pose(const geometry_msgs::msg::PoseStamped &in_pose,
                         geometry_msgs::msg::PoseStamped &out_pose,
                         const std::string &target_frame) const

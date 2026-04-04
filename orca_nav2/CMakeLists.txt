@@ -40,7 +40,7 @@ ament_target_dependencies(orca_nav2_bt_plugins
 ament_auto_add_library(orca_nav2_bt_plugins SHARED src/is_path_valid_check.cpp)
 target_include_directories(orca_nav2_bt_plugins PRIVATE include)
 target_link_libraries(orca_nav2_bt_plugins PRIVATE orca_nav2_path_tracking_utils)
-ament_target_dependencies(orca_nav2_bt_plugins rclcpp nav_msgs geometry_msgs tf2_ros tf2_geometry_msgs behaviortree_cpp_v3)
+ament_target_dependencies(orca_nav2_bt_plugins rclcpp nav_msgs geometry_msgs tf2_ros tf2_geometry_msgs behaviortree_cpp_v3 nav2_util)
 
 # --- Controller ---
 # Added tf2 dependencies here

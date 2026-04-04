@@ -5,6 +5,8 @@
 #include "behaviortree_cpp_v3/condition_node.h"
 #include "nav_msgs/msg/path.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
+#include "nav2_util/robot_utils.hpp"
+#include <cmath>
 
 namespace orca_nav2
 {

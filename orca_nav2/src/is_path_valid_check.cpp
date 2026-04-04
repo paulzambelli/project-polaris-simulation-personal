@@ -1,7 +1,11 @@
 #include "orca_nav2/is_path_valid_check.hpp"
 #include "orca_nav2/path_tracking_utils.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+#include "nav2_util/robot_utils.hpp"
+#include "tf2_ros/buffer.h"
 #include <cmath>
+
+
 namespace orca_nav2
 {
 
@@ -22,6 +26,7 @@ namespace orca_nav2
         double cross_track_xy_m;
         double vertical_error_m;
         double yaw_error_rad;
+        double transform_tolerance = 1.0;
 
         if (!getInput("path", path) || !getInput("max_dist", max_dist)) {
             return BT::NodeStatus::FAILURE;
@@ -31,23 +36,12 @@ namespace orca_nav2
             return BT::NodeStatus::FAILURE;
         }
 
-        try {
-            auto transform = tf_buffer->lookupTransform(
-                "map",
-                "base_link",
-                tf2::TimePointZero);
-
-            pose.header = transform.header;
-            pose.pose.position.x = transform.transform.translation.x;
-            pose.pose.position.y = transform.transform.translation.y;
-            pose.pose.position.z = transform.transform.translation.z;
-            pose.pose.orientation = transform.transform.rotation;
-        } catch (const tf2::TransformException & ex) {
-            return BT::NodeStatus::FAILURE;
+        if (!nav2_util::getCurrentPose(pose, *tf_buffer, "map", "base_link", transform_tolerance)) {
+            return BT::NodeStatus::FAILURE; 
         }
 
         tracking_errors_along_path(
-            path, pose, cross_track_xy_m, vertical_error_m, yaw_error_rad, closest_map)
+            path, pose, cross_track_xy_m, vertical_error_m, yaw_error_rad, closest_map);
         
         if (std::abs(cross_track_xy_m) > max_dist || std::abs(vertical_error_m) > max_dist)  {
             return BT::NodeStatus::FAILURE;
