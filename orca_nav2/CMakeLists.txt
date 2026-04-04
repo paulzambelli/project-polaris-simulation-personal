@@ -25,12 +25,19 @@ find_package(angles REQUIRED)
 
 ament_auto_find_build_dependencies()
 
+add_library(orca_nav2_path_tracking_utils STATIC src/path_tracking_utils.cpp)
+target_include_directories(orca_nav2_path_tracking_utils PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
+ament_target_dependencies(orca_nav2_path_tracking_utils angles geometry_msgs nav_msgs tf2)
+
 # --- Controller ---
 # Added tf2 dependencies here
 ament_auto_add_library(pure_pursuit_controller_3d SHARED src/pure_pursuit_controller_3d.cpp)
+target_link_libraries(pure_pursuit_controller_3d PRIVATE orca_nav2_path_tracking_utils)
 target_include_directories(pure_pursuit_controller_3d PRIVATE include)
 ament_target_dependencies(pure_pursuit_controller_3d 
-  angles nav2_util nav2_core nav2_costmap_2d rclcpp rclcpp_lifecycle tf2 tf2_ros tf2_geometry_msgs geometry_msgs std_msgs)
+  nav2_util nav2_core nav2_costmap_2d rclcpp rclcpp_lifecycle tf2 tf2_ros tf2_geometry_msgs geometry_msgs std_msgs)
 target_compile_definitions(pure_pursuit_controller_3d PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 pluginlib_export_plugin_description_file(nav2_core pure_pursuit_controller_3d_plugin.xml)
 
