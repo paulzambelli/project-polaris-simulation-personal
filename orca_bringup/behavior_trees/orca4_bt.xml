@@ -7,24 +7,25 @@
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="10" name="NavigateRecovery">
+      
       <PipelineSequence name="NavigateWithReplanning">
-
-        <RateController hz="0.1">
-        <ReactiveSequence>
-          <Inverter>
-            <IsPathValid path="{path}"/> 
-          </Inverter>
-          <ComputePathToPose goal="{goal}" path="{path}" planner_id="StraightLine"/>
-        </ReactiveSequence>
+        
+        <RateController hz="1.0"> 
+          <Fallback>
+            <IsPathValid path="{path}" max_dist="1.5"/> 
+            <ComputePathToPose goal="{goal}" path="{path}" planner_id="StraightLine"/>
+          </Fallback>
         </RateController>
         
         <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>
+      
       </PipelineSequence>
       
       <ReactiveFallback name="RecoveryFallback">
         <GoalUpdated/>
         <Wait wait_duration="2"/>
       </ReactiveFallback>
+      
     </RecoveryNode>
   </BehaviorTree>
 </root>

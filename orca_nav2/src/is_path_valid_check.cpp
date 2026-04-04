@@ -17,7 +17,7 @@ namespace orca_nav2
         nav_msgs::msg::Path path;
         std::shared_ptr<tf2_ros::Buffer> tf_buffer;
         geometry_msgs::msg::PoseStamped pose;   
-        geometry_msgs::msg::Point closest_map
+        geometry_msgs::msg::Point closest_map;
         double max_dist;
         double cross_track_xy_m;
         double vertical_error_m;

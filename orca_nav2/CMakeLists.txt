@@ -22,14 +22,25 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(angles REQUIRED)
+find_package(behaviortree_cpp_v3 REQUIRED)
 
 ament_auto_find_build_dependencies()
 
-add_library(orca_nav2_path_tracking_utils STATIC src/path_tracking_utils.cpp)
-target_include_directories(orca_nav2_path_tracking_utils PUBLIC
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-  "$<INSTALL_INTERFACE:include>")
-ament_target_dependencies(orca_nav2_path_tracking_utils angles geometry_msgs nav_msgs tf2)
+add_library(orca_nav2_bt_plugins SHARED src/is_path_valid_check.cpp)
+ament_target_dependencies(orca_nav2_bt_plugins
+  rclcpp
+  nav_msgs
+  geometry_msgs
+  tf2_ros
+  tf2_geometry_msgs
+  behaviortree_cpp_v3
+)
+
+# ---Check if the path is valid --
+ament_auto_add_library(orca_nav2_bt_plugins SHARED src/is_path_valid_check.cpp)
+target_include_directories(orca_nav2_bt_plugins PRIVATE include)
+target_link_libraries(orca_nav2_bt_plugins PRIVATE orca_nav2_path_tracking_utils)
+ament_target_dependencies(orca_nav2_bt_plugins rclcpp nav_msgs geometry_msgs tf2_ros tf2_geometry_msgs behaviortree_cpp_v3)
 
 # --- Controller ---
 # Added tf2 dependencies here
