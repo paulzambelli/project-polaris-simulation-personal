@@ -19,7 +19,7 @@
         
         <Fallback>
           <Sequence>
-            <IsSharpTurn path="{path}"/>
+            <IsSharpTurn path="{path}" min_angle_rad="0.785" release_angle_rad="0.0873"/>
             <FollowPath path="{path}" controller_id="SharpTurn" goal_checker_id="goal_checker"/> //differentchecker?!?
           </Sequence>
           <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>
