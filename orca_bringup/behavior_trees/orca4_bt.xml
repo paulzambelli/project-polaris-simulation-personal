@@ -17,7 +17,14 @@
           </Fallback>
         </RateController>
         
-        <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>
+        <Fallback>
+          <Sequence>
+            <IsSharpTurn path="{path}"/>
+            <FollowPath path="{path}" controller_id="SharpTurn" goal_checker_id="goal_checker"/> //differentchecker?!?
+          </Sequence>
+          <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>
+        </Fallback>
+        
       
       </PipelineSequence>
       

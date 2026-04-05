@@ -57,8 +57,8 @@ controller_server:
     min_y_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
     progress_checker_plugins: ["progress_checker"]
-    goal_checker_plugins: ["goal_checker"]
-    controller_plugins: ["LongStraightLine"]
+    goal_checker_plugins: ["goal_checker"] # also here different checker?
+    controller_plugins: ["LongStraightLine", "SharpTurn"]
 
     # Progress checker parameters
     progress_checker:
@@ -81,6 +81,28 @@ controller_server:
       tick_rate: 20.0  # Loop rate, must match controller_frequency
 
       # Desired velocities and accelerations
+      x_vel: 0.4
+      x_accel: 0.4
+      z_vel: 0.3
+      z_accel: 0.3
+      yaw_vel: 0.25
+      yaw_accel: 0.5
+
+      # The motion model may be bogus, so actual velocity may be lower or higher than desired
+      # velocity. Specify a range using the error terms, e.g.,
+      # [(1 - yaw_error_) * yaw_vel_, (1 + yaw_error_) * yaw_vel_]
+      x_error: 0.5
+      yaw_error: 0.6
+      # Tracking topics: 3x Float64 + PointStamped + PoseStamped + TwistStamped (see README)
+      publish_tracking_error: true
+
+    SharpTurn:
+      plugin: "orca_nav2/SharpTurnController3D"
+      lookahead_dist: 1.0
+      transform_tolerance: 1.0
+      goal_tolerance: 0.2
+      tick_rate: 20.0  # Loop rate, must match controller_frequency
+
       x_vel: 0.4
       x_accel: 0.4
       z_vel: 0.3
