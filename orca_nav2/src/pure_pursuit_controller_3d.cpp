@@ -265,7 +265,8 @@ namespace orca_nav2
       logger_ = parent->get_logger();
       tf_ = tf;
       base_frame_id_ = costmap_ros->getBaseFrameID();
-
+      
+      // default values but the ones from orca_bringup nav2_param.yaml are used.
       PARAMETER(parent, name, x_vel, 0.4)
       PARAMETER(parent, name, x_accel, 0.4)
       PARAMETER(parent, name, z_vel, 0.2)
