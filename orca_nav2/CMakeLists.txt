@@ -49,8 +49,7 @@ target_link_libraries(pure_pursuit_controller_3d PRIVATE orca_nav2_path_tracking
 target_include_directories(pure_pursuit_controller_3d PRIVATE include)
 ament_target_dependencies(pure_pursuit_controller_3d nav2_util nav2_core nav2_costmap_2d rclcpp rclcpp_lifecycle tf2 tf2_ros tf2_geometry_msgs geometry_msgs std_msgs)
 target_compile_definitions(pure_pursuit_controller_3d PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
-pluginlib_export_plugin_description_file(nav2_core pure_pursuit_controller_3d_plugin.xml)
-pluginlib_export_plugin_description_file(nav2_core orca_controllers_plugin.xml)
+pluginlib_export_plugin_description_file(nav2_core orca_controllers_plugins.xml)
 
 
 # --- Planner ---
@@ -81,7 +80,7 @@ endif()
 
 install(
   FILES
-  pure_pursuit_controller_3d_plugin.xml
+  orca_controllers_plugins.xml
   straight_line_planner_3d_plugin.xml
   goal_checker_3d_plugin.xml
   progress_checker_3d_plugin.xml

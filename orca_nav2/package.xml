@@ -42,7 +42,7 @@
     <build_type>ament_cmake</build_type>
     <nav2_core plugin="${prefix}/goal_checker_3d_plugin.xml" />
     <nav2_core plugin="${prefix}/progress_checker_3d_plugin.xml" />
-    <nav2_core plugin="${prefix}/orca_controller_plugins.xml" />
+    <nav2_core plugin="${prefix}/orca_controllers_plugins.xml" />
     <nav2_core plugin="${prefix}/straight_line_planner_3d_plugin.xml" />
   </export>
 </package>
