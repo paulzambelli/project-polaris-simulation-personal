@@ -42,15 +42,16 @@ target_include_directories(orca_nav2_bt_plugins PRIVATE include)
 target_link_libraries(orca_nav2_bt_plugins PRIVATE orca_nav2_path_tracking_utils)
 ament_target_dependencies(orca_nav2_bt_plugins rclcpp nav_msgs geometry_msgs tf2_ros tf2_geometry_msgs behaviortree_cpp_v3 nav2_util)
 
-# --- Controller ---
+# --- Controller PurePursuite---
 # Added tf2 dependencies here
-ament_auto_add_library(pure_pursuit_controller_3d SHARED src/pure_pursuit_controller_3d.cpp)
+ament_auto_add_library(pure_pursuit_controller_3d SHARED src/pure_pursuit_controller_3d.cpp src/sharp_turn_controller3D.cpp)
 target_link_libraries(pure_pursuit_controller_3d PRIVATE orca_nav2_path_tracking_utils)
 target_include_directories(pure_pursuit_controller_3d PRIVATE include)
-ament_target_dependencies(pure_pursuit_controller_3d 
-  nav2_util nav2_core nav2_costmap_2d rclcpp rclcpp_lifecycle tf2 tf2_ros tf2_geometry_msgs geometry_msgs std_msgs)
+ament_target_dependencies(pure_pursuit_controller_3d nav2_util nav2_core nav2_costmap_2d rclcpp rclcpp_lifecycle tf2 tf2_ros tf2_geometry_msgs geometry_msgs std_msgs)
 target_compile_definitions(pure_pursuit_controller_3d PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 pluginlib_export_plugin_description_file(nav2_core pure_pursuit_controller_3d_plugin.xml)
+pluginlib_export_plugin_description_file(nav2_core orca_controllers_plugin.xml)
+
 
 # --- Planner ---
 ament_auto_add_library(straight_line_planner_3d SHARED src/straight_line_planner_3d.cpp)
