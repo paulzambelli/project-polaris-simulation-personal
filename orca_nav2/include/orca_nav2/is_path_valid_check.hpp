@@ -21,7 +21,10 @@ class IsPathValidCheck : public BT::ConditionNode
         {
             return {
                 BT::InputPort<nav_msgs::msg::Path>("path", "Path to Check"),
-                BT::InputPort<double>("max_dist", 0.5, "Maximum allowed distance from path."),
+                BT::InputPort<double>(
+                    "max_dist", 0.5,
+                    "Max |cross-track XY| and |vertical error| vs path (same definitions as "
+                    "PurePursuitController3D; logic lives only in is_path_valid_check.cpp)."),
                 BT::InputPort<double>(
                     "goal_tolerance_m", 0.75,
                     "If path end is farther than this from blackboard goal, path is stale (replan)."),

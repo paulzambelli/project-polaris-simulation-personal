@@ -5,6 +5,8 @@ bt_navigator:
     use_sim_time: True
     global_frame: "map"
     robot_base_frame: "base_link"
+    # Used by BT client node (and OrcaGeomIsPathValid) for map<->base_link TF lookup
+    transform_tolerance: 1.0
     odom_topic: "/odom"
     bt_loop_duration: 10
     default_server_timeout: 20

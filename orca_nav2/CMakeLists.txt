@@ -38,6 +38,7 @@ ament_target_dependencies(orca_nav2_bt_plugins
   tf2_geometry_msgs
   angles
   behaviortree_cpp_v3
+  nav2_behavior_tree
   nav2_util
 )
 
