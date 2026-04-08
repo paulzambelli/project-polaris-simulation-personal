@@ -23,6 +23,7 @@ from rclpy.signals import SignalHandlerOptions
 from std_msgs.msg import Bool, String
 
 from load_wsg84_points_to_waypoints import process_coordinates
+from nav2_ready_wait import wait_for_waypoint_follower_active
 
 
 class SendGoalResult(Enum):
@@ -250,14 +251,19 @@ def main() -> None:
         for _ in range(10):
             executor.spin_once(timeout_sec=0.05)
 
+        if not wait_for_waypoint_follower_active(executor, node, timeout_sec=180.0):
+            print('Nav2 not ready; exiting.', file=sys.stderr)
+            sys.exit(1)
+
+        # ArduSub/SITL often rejects GUIDED while disarmed; arm first.
+        print('>>> Arming <<<')
+        arm_pub.publish(Bool(data=True))
+        for _ in range(35):
+            executor.spin_once(timeout_sec=0.05)
+
         print('>>> Setting Pixhawk mode to GUIDED <<<')
         mode_pub.publish(String(data='GUIDED'))
         for _ in range(40):
-            executor.spin_once(timeout_sec=0.05)
-
-        print('>>> Arming <<<')
-        arm_pub.publish(Bool(data=True))
-        for _ in range(20):
             executor.spin_once(timeout_sec=0.05)
 
         print('>>> Executing mission <<<')
