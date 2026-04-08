@@ -24,6 +24,11 @@ from std_msgs.msg import Bool, String
 
 from load_wsg84_points_to_waypoints import process_coordinates
 from nav2_ready_wait import wait_for_waypoint_follower_active
+from pixhawk_ready_wait import (
+    PixhawkState,
+    ensure_armed_and_mode_guided,
+    make_heartbeat_callback,
+)
 
 
 class SendGoalResult(Enum):
@@ -246,6 +251,14 @@ def main() -> None:
         mode_pub = node.create_publisher(String, '/pixhawk/mode_cmd', 10)
         arm_pub = node.create_publisher(Bool, '/pixhawk/arm_cmd', 10)
 
+        hb_state = PixhawkState()
+        node.create_subscription(
+            String,
+            '/pixhawk/heartbeat',
+            make_heartbeat_callback(hb_state),
+            10,
+        )
+
         print(f'Loaded {len(goal.poses)} waypoints (map ENU)')
 
         for _ in range(10):
@@ -255,16 +268,17 @@ def main() -> None:
             print('Nav2 not ready; exiting.', file=sys.stderr)
             sys.exit(1)
 
-        # ArduSub/SITL often rejects GUIDED while disarmed; arm first.
-        print('>>> Arming <<<')
-        arm_pub.publish(Bool(data=True))
-        for _ in range(35):
-            executor.spin_once(timeout_sec=0.05)
-
-        print('>>> Setting Pixhawk mode to GUIDED <<<')
-        mode_pub.publish(String(data='GUIDED'))
-        for _ in range(40):
-            executor.spin_once(timeout_sec=0.05)
+        # Do not send Nav2 goals until heartbeat confirms arm + GUIDED (avoids orphan path in RViz).
+        if not ensure_armed_and_mode_guided(
+            executor, node, arm_pub, mode_pub, hb_state
+        ):
+            print(
+                'Pixhawk not ready for mission; skipping Nav2 goal (no path published).',
+                file=sys.stderr,
+            )
+            publish_manual_and_spin(executor, node, mode_pub, spins=20)
+            publish_disarm_and_spin(executor, node, arm_pub, spins=20)
+            sys.exit(1)
 
         print('>>> Executing mission <<<')
         mission_result = send_goal(executor, follow_waypoints, goal, node, mode_pub, arm_pub)
