@@ -4,7 +4,7 @@
   RateController re-calculates the path iff the lookahead-distance CANNOT reach the deired path.
   Starting point: navigate_w_replanning_and_recovery.xml
 -->
-
+<!--
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="10" name="NavigateRecovery">
@@ -21,8 +21,8 @@
     </RecoveryNode>
   </BehaviorTree>
 </root>
+-->
 
-<!--
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="10" name="NavigateRecovery">
@@ -31,7 +31,7 @@
         
         <RateController hz="1.0"> 
           <Fallback>
-            <IsPathValid path="{path}" max_dist="1.5"/> 
+            <IsPathValid path="{path}" max_dist="1.5" goal_tolerance_m="0.75"/>
             <ComputePathToPose goal="{goal}" path="{path}" planner_id="StraightLine"/>
           </Fallback>
         </RateController>
@@ -48,4 +48,3 @@
     </RecoveryNode>
   </BehaviorTree>
 </root>
--->

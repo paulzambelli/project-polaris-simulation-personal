@@ -26,6 +26,7 @@
 // for the node and launch file...
 // from launch_ros.actions import Node
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <string>

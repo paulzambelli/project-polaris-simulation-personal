@@ -1,6 +1,5 @@
 #include "orca_nav2/is_path_valid_check.hpp"
 #include "orca_nav2/path_tracking_utils.hpp"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "nav2_util/robot_utils.hpp"
 #include "tf2_ros/buffer.h"
 #include <cmath>
@@ -23,6 +22,8 @@ namespace orca_nav2
         geometry_msgs::msg::PoseStamped pose;   
         geometry_msgs::msg::Point closest_map;
         double max_dist;
+        double goal_tolerance_m = 0.75;
+        geometry_msgs::msg::PoseStamped goal;
         double cross_track_xy_m;
         double vertical_error_m;
         double yaw_error_rad;
@@ -31,7 +32,25 @@ namespace orca_nav2
         if (!getInput("path", path) || !getInput("max_dist", max_dist)) {
             return BT::NodeStatus::FAILURE;
         }
-        else if (!config().blackboard->get("tf_buffer", tf_buffer))
+        static_cast<void>(getInput("goal_tolerance_m", goal_tolerance_m));
+        if (path.poses.empty()) {
+            return BT::NodeStatus::FAILURE;
+        }
+        // NavigateToPose updates blackboard "goal" on each waypoint but does not clear "path".
+        // A geometrically "valid" stale path would skip ComputePathToPose and FollowPath would
+        // track the previous goal — breaks waypoint_follower chains.
+        if (!config().blackboard->get("goal", goal)) {
+            return BT::NodeStatus::FAILURE;
+        }
+        if (!path.header.frame_id.empty() && !goal.header.frame_id.empty() &&
+            path.header.frame_id != goal.header.frame_id)
+        {
+            return BT::NodeStatus::FAILURE;
+        }
+        if (point_distance_l2(path.poses.back().pose.position, goal.pose.position) > goal_tolerance_m) {
+            return BT::NodeStatus::FAILURE;
+        }
+        if (!config().blackboard->get("tf_buffer", tf_buffer))
         {
             return BT::NodeStatus::FAILURE;
         }

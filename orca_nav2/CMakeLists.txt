@@ -26,11 +26,6 @@ find_package(behaviortree_cpp_v3 REQUIRED)
 
 ament_auto_find_build_dependencies()
 
-# Shared path geometry for BT condition and controller (plain link after ament_target_dependencies).
-ament_auto_add_library(orca_nav2_path_tracking_utils SHARED src/path_tracking_utils.cpp)
-target_include_directories(orca_nav2_path_tracking_utils PUBLIC include)
-ament_target_dependencies(orca_nav2_path_tracking_utils geometry_msgs nav_msgs tf2 angles)
-
 # --- Check if the path is valid (BT plugins) ---
 ament_auto_add_library(orca_nav2_bt_plugins SHARED src/is_path_valid_check.cpp)
 target_include_directories(orca_nav2_bt_plugins PRIVATE include)
@@ -38,40 +33,39 @@ ament_target_dependencies(orca_nav2_bt_plugins
   rclcpp
   nav_msgs
   geometry_msgs
+  tf2
   tf2_ros
   tf2_geometry_msgs
+  angles
   behaviortree_cpp_v3
   nav2_util
 )
-target_link_libraries(orca_nav2_bt_plugins orca_nav2_path_tracking_utils)
 
 # --- Controller ---
 ament_auto_add_library(pure_pursuit_controller_3d SHARED src/pure_pursuit_controller_3d.cpp)
 target_include_directories(pure_pursuit_controller_3d PRIVATE include)
-ament_target_dependencies(pure_pursuit_controller_3d
-  nav2_util nav2_core nav2_costmap_2d rclcpp rclcpp_lifecycle tf2 tf2_ros tf2_geometry_msgs geometry_msgs std_msgs)
-target_link_libraries(pure_pursuit_controller_3d orca_nav2_path_tracking_utils)
+ament_target_dependencies(pure_pursuit_controller_3d nav2_util nav2_core nav2_costmap_2d rclcpp rclcpp_lifecycle pluginlib tf2 tf2_ros tf2_geometry_msgs geometry_msgs nav_msgs std_msgs angles)
 target_compile_definitions(pure_pursuit_controller_3d PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 pluginlib_export_plugin_description_file(nav2_core pure_pursuit_controller_3d_plugin.xml)
 
 # --- Planner ---
 ament_auto_add_library(straight_line_planner_3d SHARED src/straight_line_planner_3d.cpp)
 target_include_directories(straight_line_planner_3d PRIVATE include)
-ament_target_dependencies(straight_line_planner_3d nav2_util nav2_core nav2_costmap_2d rclcpp nav_msgs)
+ament_target_dependencies(straight_line_planner_3d nav2_util nav2_core nav2_costmap_2d rclcpp nav_msgs pluginlib)
 target_compile_definitions(straight_line_planner_3d PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 pluginlib_export_plugin_description_file(nav2_core straight_line_planner_3d_plugin.xml)
 
 # --- Goal Checker ---
 ament_auto_add_library(goal_checker_3d SHARED src/goal_checker_3d.cpp)
 target_include_directories(goal_checker_3d PRIVATE include)
-ament_target_dependencies(goal_checker_3d nav2_util nav2_core nav2_costmap_2d rclcpp angles)
+ament_target_dependencies(goal_checker_3d nav2_util nav2_core nav2_costmap_2d rclcpp angles pluginlib)
 target_compile_definitions(goal_checker_3d PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 pluginlib_export_plugin_description_file(nav2_core goal_checker_3d_plugin.xml)
 
 # --- Progress Checker ---
 ament_auto_add_library(progress_checker_3d SHARED src/progress_checker_3d.cpp)
 target_include_directories(progress_checker_3d PRIVATE include)
-ament_target_dependencies(progress_checker_3d nav2_util nav2_core nav2_costmap_2d rclcpp)
+ament_target_dependencies(progress_checker_3d nav2_util nav2_core nav2_costmap_2d rclcpp pluginlib)
 target_compile_definitions(progress_checker_3d PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 pluginlib_export_plugin_description_file(nav2_core progress_checker_3d_plugin.xml)
 

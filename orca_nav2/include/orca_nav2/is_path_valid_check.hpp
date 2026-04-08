@@ -5,8 +5,6 @@
 #include "behaviortree_cpp_v3/condition_node.h"
 #include "nav_msgs/msg/path.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
-#include "nav2_util/robot_utils.hpp"
-#include <cmath>
 
 namespace orca_nav2
 {
@@ -23,8 +21,10 @@ class IsPathValidCheck : public BT::ConditionNode
         {
             return {
                 BT::InputPort<nav_msgs::msg::Path>("path", "Path to Check"),
-                BT::InputPort<double>("max_dist", 0.5, "Maximum allowed distance from path.")
-
+                BT::InputPort<double>("max_dist", 0.5, "Maximum allowed distance from path."),
+                BT::InputPort<double>(
+                    "goal_tolerance_m", 0.75,
+                    "If path end is farther than this from blackboard goal, path is stale (replan)."),
             };
         }
 
