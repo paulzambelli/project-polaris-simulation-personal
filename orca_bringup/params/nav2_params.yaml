@@ -96,9 +96,8 @@ controller_server:
       lookahead_dist: 1.0
       transform_tolerance: 1.0
       goal_tolerance: 0.2
-      tick_rate: 20.0  # Loop rate, must match controller_frequency
+      tick_rate: 20.0
 
-      # Desired velocities and accelerations
       x_vel: 0.4
       x_accel: 0.4
       z_vel: 0.3
@@ -119,13 +118,13 @@ controller_server:
       lookahead_dist: 1.0
       transform_tolerance: 1.0
       goal_tolerance: 0.2
-      tick_rate: 20.0  # Loop rate, must match controller_frequency
-
+      tick_rate: 20.0
+      
       z_vel: 0.3
       z_accel: 0.3
       yaw_vel: 0.25
       yaw_accel: 0.5
-      yaw_P_gain: 0.1 # TODO: Needs to be the one of ArduSub!!
+      yaw_P_gain: 0.05 # TODO: Needs to be the one of ArduSub!!
 
       # The motion model may be bogus, so actual velocity may be lower or higher than desired
       # velocity. Specify a range using the error terms, e.g.,
