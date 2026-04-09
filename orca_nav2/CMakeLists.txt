@@ -40,9 +40,12 @@ target_include_directories(orca_nav2_bt_plugins PRIVATE include)
 ament_target_dependencies(orca_nav2_bt_plugins
   nav_msgs
   geometry_msgs
+  tf2
   tf2_ros
   tf2_geometry_msgs
+  angles
   behaviortree_cpp_v3
+  nav2_behavior_tree
   nav2_util
 )
 target_link_libraries(orca_nav2_bt_plugins orca_nav2_path_tracking_utils)
@@ -61,21 +64,21 @@ pluginlib_export_plugin_description_file(nav2_core pure_pursuit_controller_3d_pl
 # --- Planner ---
 ament_auto_add_library(straight_line_planner_3d SHARED src/straight_line_planner_3d.cpp)
 target_include_directories(straight_line_planner_3d PRIVATE include)
-ament_target_dependencies(straight_line_planner_3d nav2_util nav2_core nav2_costmap_2d rclcpp nav_msgs)
+ament_target_dependencies(straight_line_planner_3d nav2_util nav2_core nav2_costmap_2d rclcpp nav_msgs pluginlib)
 target_compile_definitions(straight_line_planner_3d PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 pluginlib_export_plugin_description_file(nav2_core straight_line_planner_3d_plugin.xml)
 
 # --- Goal Checker ---
 ament_auto_add_library(goal_checker_3d SHARED src/goal_checker_3d.cpp)
 target_include_directories(goal_checker_3d PRIVATE include)
-ament_target_dependencies(goal_checker_3d nav2_util nav2_core nav2_costmap_2d rclcpp angles)
+ament_target_dependencies(goal_checker_3d nav2_util nav2_core nav2_costmap_2d rclcpp angles pluginlib)
 target_compile_definitions(goal_checker_3d PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 pluginlib_export_plugin_description_file(nav2_core goal_checker_3d_plugin.xml)
 
 # --- Progress Checker ---
 ament_auto_add_library(progress_checker_3d SHARED src/progress_checker_3d.cpp)
 target_include_directories(progress_checker_3d PRIVATE include)
-ament_target_dependencies(progress_checker_3d nav2_util nav2_core nav2_costmap_2d rclcpp)
+ament_target_dependencies(progress_checker_3d nav2_util nav2_core nav2_costmap_2d rclcpp pluginlib)
 target_compile_definitions(progress_checker_3d PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 pluginlib_export_plugin_description_file(nav2_core progress_checker_3d_plugin.xml)
 

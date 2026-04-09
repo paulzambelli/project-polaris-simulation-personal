@@ -26,14 +26,16 @@
 // for the node and launch file...
 // from launch_ros.actions import Node
 
+#include <algorithm>
 #include <cmath>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "angles/angles.h"
 #include "orca_nav2/param_macro.hpp"
-#include "orca_nav2/path_tracking_utils.hpp"
+// Deleted: #include "orca_shared/util.hpp"
 #include "nav2_core/controller.hpp"
 #include "nav2_core/exceptions.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -146,6 +148,7 @@ namespace orca_nav2
     constexpr double yaw_vel_lower() const { return lower(yaw_vel_, yaw_error_); }
 
     // Return the first pose in the plan > lookahead distance away, or the last pose in the plan
+    // ADDED: Built-in safe TF2 Transform helper (Replaces orca_shared math)
     bool transform_pose(const geometry_msgs::msg::PoseStamped &in_pose,
                         geometry_msgs::msg::PoseStamped &out_pose,
                         const std::string &target_frame) const
@@ -326,7 +329,7 @@ namespace orca_nav2
       }
 
       // Find goal
-      auto goal_f_map = find_pure_pursuit_goal(plan_, pose_f_map, lookahead_dist_);
+      auto goal_f_map = find_goal(pose_f_map);
 
       // Plan poses are stale, update the timestamp to get recent map -> odom -> base transforms
       goal_f_map.header.stamp = pose_f_map.header.stamp;
@@ -414,8 +417,7 @@ namespace orca_nav2
       logger_ = parent->get_logger();
       tf_ = tf;
       base_frame_id_ = costmap_ros->getBaseFrameID();
-      
-      // default values but the ones from orca_bringup nav2_param.yaml are used.
+
       PARAMETER(parent, name, x_vel, 0.4)
       PARAMETER(parent, name, x_accel, 0.4)
       PARAMETER(parent, name, z_vel, 0.2)
@@ -533,7 +535,7 @@ namespace orca_nav2
           double z_err = 0.0;
           double yaw_err = 0.0;
           geometry_msgs::msg::Point closest_map;
-          tracking_errors_along_path(plan_, pose_f_map, cross_xy, z_err, yaw_err, closest_map);
+          tracking_error_from_plan(pose_f_map, cross_xy, z_err, yaw_err, closest_map);
           std_msgs::msg::Float64 cross_msg;
           cross_msg.data = cross_xy;
           cross_track_xy_pub_->publish(cross_msg);
@@ -604,6 +606,7 @@ namespace orca_nav2
 } // namespace orca_nav2
 
 #include "pluginlib/class_list_macros.hpp"
+
 
 // Register this controller as a nav2_core plugin
 PLUGINLIB_EXPORT_CLASS(orca_nav2::PurePursuitController3D, nav2_core::Controller)
