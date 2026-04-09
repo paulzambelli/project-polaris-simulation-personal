@@ -15,6 +15,7 @@
   <author>Clyde McQueen</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_auto</buildtool_depend>
 
   <test_depend>ament_lint_auto</test_depend>
 
@@ -36,8 +37,10 @@
   <depend>pluginlib</depend>
   <depend>std_msgs</depend>
   <depend>tf2</depend>
+  <depend>tf2_geometry_msgs</depend>
   <depend>tf2_ros</depend>
   <depend>visualization_msgs</depend>
+  <depend>behaviortree_cpp_v3</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

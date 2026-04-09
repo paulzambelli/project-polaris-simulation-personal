@@ -38,7 +38,6 @@ ament_target_dependencies(orca_nav2_path_tracking_utils INTERFACE geometry_msgs 
 ament_auto_add_library(orca_nav2_bt_plugins SHARED src/is_path_valid_check.cpp)
 target_include_directories(orca_nav2_bt_plugins PRIVATE include)
 ament_target_dependencies(orca_nav2_bt_plugins
-  rclcpp
   nav_msgs
   geometry_msgs
   tf2_ros

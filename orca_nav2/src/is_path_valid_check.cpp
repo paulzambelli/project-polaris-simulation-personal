@@ -31,7 +31,10 @@ namespace orca_nav2
         if (!getInput("path", path) || !getInput("max_dist", max_dist)) {
             return BT::NodeStatus::FAILURE;
         }
-        else if (!config().blackboard->get("tf_buffer", tf_buffer))
+        if (path.poses.empty()) {
+            return BT::NodeStatus::FAILURE;
+        }
+        if (!config().blackboard->get<std::shared_ptr<tf2_ros::Buffer>>("tf_buffer", tf_buffer))
         {
             return BT::NodeStatus::FAILURE;
         }
@@ -55,5 +58,5 @@ namespace orca_nav2
 #include "behaviortree_cpp_v3/bt_factory.h"
 BT_REGISTER_NODES(factory)
 {
-    factory.registerNodeType<orca_nav2::IsPathValidCheck>("IsPathValid");
+    factory.registerNodeType<orca_nav2::IsPathValidCheck>("IsStraightPathValid");
 }
