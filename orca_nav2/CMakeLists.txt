@@ -46,6 +46,8 @@ ament_target_dependencies(orca_nav2_bt_plugins
   nav2_util
 )
 target_link_libraries(orca_nav2_bt_plugins orca_nav2_path_tracking_utils)
+# Required by behaviortree_cpp_v3 BT_REGISTER_NODES: export BT_RegisterNodesFromPlugin for dlopen.
+target_compile_definitions(orca_nav2_bt_plugins PRIVATE BT_PLUGIN_EXPORT)
 
 # --- Controller ---
 ament_auto_add_library(pure_pursuit_controller_3d SHARED src/pure_pursuit_controller_3d.cpp)
