@@ -5,6 +5,7 @@ bt_navigator:
     use_sim_time: True
     global_frame: "map"
     robot_base_frame: "base_link"
+    transform_tolerance: 1.0
     odom_topic: "/odom"
     bt_loop_duration: 10
     default_server_timeout: 20
@@ -43,6 +44,7 @@ bt_navigator:
       - nav2_planner_selector_bt_node
       - nav2_controller_selector_bt_node
       - nav2_goal_checker_selector_bt_node
+      - orca_nav2_bt_plugins
 
 bt_navigator_rclcpp_node:
   ros__parameters:
