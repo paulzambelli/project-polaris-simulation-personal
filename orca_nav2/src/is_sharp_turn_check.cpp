@@ -72,24 +72,21 @@ BT::NodeStatus IsSharpTurnCheck::tick()
     tracking_errors_along_path(path, pose, cross_track_xy_m, vertical_error_m, yaw_error_rad, closest_map);
     double abs_yaw_error_rad = std::abs(yaw_error_rad);
 
-    if (!is_turning_)
-    {
-        if (abs_yaw_error_rad > min_angle_rad)
-        {
-            is_turning_ = true;
-        }
-    }
-    else
-    {
-        if (abs_yaw_error_rad < release_angle_rad)
-        {
-            is_turning_ = false;
-        }
-    }
+        // Like Schmitt-trigger behaviour.
 
-    return is_turning_ ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
-}
+        //Start turning
+        if (!is_turning_) {
+            if (abs_yaw_error_rad > min_angle_rad) {
+                is_turning_ = true;
+            }
+        } else {
+            if (abs_yaw_error_rad < release_angle_rad) {
+                is_turning_ = false;
+            } //Should end turning
+        }
 
+        return is_turning_ ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
+    }
 } // namespace orca_nav2
 
 #include "behaviortree_cpp_v3/bt_factory.h"
