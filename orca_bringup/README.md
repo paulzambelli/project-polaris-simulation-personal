@@ -14,6 +14,13 @@ ros2 run orca_bringup WSG84_mission_starter.py
 ros2 run orca_bringup current_vector_node.py --ros-args -p direction:="x, con_xy, ramp_xyz" -p amplitude:=0.8 -p period:=15.0
 ```
 
+## Start just mission and send cmd_vel
+```bash
+ros2 topic pub -1 /pixhawk/arm_cmd std_msgs/msg/Bool "{data: true}"
+ros2 topic pub -1 /pixhawk/mode_cmd std_msgs/msg/String "{data: GUIDED}"
+ros2 topic pub -r 20 /pixhawk/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"
+```
+
 ## Tracking errors: rosbag → CSV (Docker vs host)
 
 The Nav2 plugin `orca_nav2/PurePursuitController3D` can publish six diagnostics
