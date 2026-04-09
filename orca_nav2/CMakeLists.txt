@@ -26,16 +26,6 @@ find_package(behaviortree_cpp_v3 REQUIRED)
 
 ament_auto_find_build_dependencies()
 
-add_library(orca_nav2_bt_plugins SHARED src/is_path_valid_check.cpp)
-ament_target_dependencies(orca_nav2_bt_plugins
-  rclcpp
-  nav_msgs
-  geometry_msgs
-  tf2_ros
-  tf2_geometry_msgs
-  behaviortree_cpp_v3
-)
-
 # --- Behviour Tree plugins ---
 ament_auto_add_library(orca_nav2_bt_plugins SHARED src/is_path_valid_check.cpp src/is_sharp_turn_check.cpp)
 target_include_directories(orca_nav2_bt_plugins PRIVATE include)
