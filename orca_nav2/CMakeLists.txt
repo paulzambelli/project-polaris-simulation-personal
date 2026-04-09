@@ -26,10 +26,13 @@ find_package(behaviortree_cpp_v3 REQUIRED)
 
 ament_auto_find_build_dependencies()
 
-# Shared path geometry for BT condition and controller (plain link after ament_target_dependencies).
-ament_auto_add_library(orca_nav2_path_tracking_utils SHARED src/path_tracking_utils.cpp)
-target_include_directories(orca_nav2_path_tracking_utils PUBLIC include)
-ament_target_dependencies(orca_nav2_path_tracking_utils geometry_msgs nav_msgs tf2 angles)
+# Header-only path geometry for BT condition and controller (dependencies propagate when linked).
+add_library(orca_nav2_path_tracking_utils INTERFACE)
+target_include_directories(orca_nav2_path_tracking_utils INTERFACE
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+)
+ament_target_dependencies(orca_nav2_path_tracking_utils INTERFACE geometry_msgs nav_msgs tf2 angles)
 
 # --- Check if the path is valid (BT plugins) ---
 ament_auto_add_library(orca_nav2_bt_plugins SHARED src/is_path_valid_check.cpp)
@@ -49,7 +52,7 @@ target_link_libraries(orca_nav2_bt_plugins orca_nav2_path_tracking_utils)
 ament_auto_add_library(pure_pursuit_controller_3d SHARED src/pure_pursuit_controller_3d.cpp)
 target_include_directories(pure_pursuit_controller_3d PRIVATE include)
 ament_target_dependencies(pure_pursuit_controller_3d
-  nav2_util nav2_core nav2_costmap_2d rclcpp rclcpp_lifecycle tf2 tf2_ros tf2_geometry_msgs geometry_msgs std_msgs)
+  angles nav2_util nav2_core nav2_costmap_2d rclcpp rclcpp_lifecycle tf2 tf2_ros tf2_geometry_msgs geometry_msgs std_msgs)
 target_link_libraries(pure_pursuit_controller_3d orca_nav2_path_tracking_utils)
 target_compile_definitions(pure_pursuit_controller_3d PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 pluginlib_export_plugin_description_file(nav2_core pure_pursuit_controller_3d_plugin.xml)
