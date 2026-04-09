@@ -114,7 +114,8 @@ def wait_for_waypoint_follower_active(
         f'bt_navigator={_lifecycle_label(bt_id) if bt_id is not None else "n/a"}, '
         f'controller_server={_lifecycle_label(cs_id) if cs_id is not None else "n/a"}\n'
         '  If bt_navigator is unconfigured/inactive: check its terminal output for BT XML / plugin '
-        'load errors (custom nodes need liborca_nav2_bt_plugins.so on LD_LIBRARY_PATH via '
+        'load errors (custom nodes need libis_path_valid_check.so and libis_sharp_turn_check.so '
+        'on LD_LIBRARY_PATH via '
         '`source install/setup.bash`).\n'
         '  CLI: ros2 lifecycle get /bt_navigator ; ros2 lifecycle get /waypoint_follower'
     )

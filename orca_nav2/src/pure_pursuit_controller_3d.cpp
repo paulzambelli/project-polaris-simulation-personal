@@ -27,6 +27,7 @@
 // from launch_ros.actions import Node
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <limits>
 #include <memory>

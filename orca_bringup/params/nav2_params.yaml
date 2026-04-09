@@ -60,7 +60,8 @@ bt_navigator:
       - nav2_assisted_teleop_cancel_bt_node
       - nav2_drive_on_heading_cancel_bt_node
       - nav2_is_battery_charging_condition_bt_node
-      - orca_nav2_bt_plugins
+      - is_path_valid_check
+      - is_sharp_turn_check
 
 bt_navigator_rclcpp_node:
   ros__parameters:
@@ -129,8 +130,8 @@ controller_server:
       # The motion model may be bogus, so actual velocity may be lower or higher than desired
       # velocity. Specify a range using the error terms, e.g.,
       # [(1 - yaw_error_) * yaw_vel_, (1 + yaw_error_) * yaw_vel_]
-      x_error: 0.5
-      yaw_error: 0.6
+      # x_error: 0.5
+      # yaw_error: 0.6
       # Tracking topics: 3x Float64 + PointStamped + PoseStamped + TwistStamped (see README)
       publish_tracking_error: true
 

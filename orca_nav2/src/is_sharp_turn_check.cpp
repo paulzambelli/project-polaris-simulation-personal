@@ -1,12 +1,15 @@
+#include <cmath>
+#include <memory>
 #include <string>
+
+#include "behaviortree_cpp_v3/bt_factory.h"
 #include "behaviortree_cpp_v3/condition_node.h"
-#include "nav_msgs/msg/path.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
+#include "nav_msgs/msg/path.hpp"
 #include "nav2_util/robot_utils.hpp"
 #include "orca_nav2/path_tracking_utils.hpp"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "tf2_ros/buffer.h"
-#include <cmath>
+
 
 namespace orca_nav2
 {
@@ -46,6 +49,7 @@ BT::NodeStatus IsSharpTurnCheck::tick()
     std::shared_ptr<tf2_ros::Buffer> tf_buffer;
     geometry_msgs::msg::PoseStamped pose;
     geometry_msgs::msg::Point closest_map;
+
     double min_angle_rad;
     double release_angle_rad;
 
@@ -59,37 +63,40 @@ BT::NodeStatus IsSharpTurnCheck::tick()
     {
         return BT::NodeStatus::FAILURE;
     }
-    if (!config().blackboard->get("tf_buffer", tf_buffer))
-    {
+    if (path.poses.empty()) {
+        return BT::NodeStatus::FAILURE;
+    }
+    if (!config().blackboard->get<std::shared_ptr<tf2_ros::Buffer>>("tf_buffer", tf_buffer)) {
         return BT::NodeStatus::FAILURE;
     }
 
-    if (!nav2_util::getCurrentPose(pose, *tf_buffer, "map", "base_link", transform_tolerance))
-    {
+    if (!nav2_util::getCurrentPose(pose, *tf_buffer, "map", "base_link", transform_tolerance)) {
         return BT::NodeStatus::FAILURE;
     }
 
-    tracking_errors_along_path(path, pose, cross_track_xy_m, vertical_error_m, yaw_error_rad, closest_map);
+    tracking_errors_along_path(
+        path, pose, cross_track_xy_m, vertical_error_m, yaw_error_rad, closest_map);
     double abs_yaw_error_rad = std::abs(yaw_error_rad);
 
-        // Like Schmitt-trigger behaviour.
+    // Like Schmitt-trigger behaviour.
 
-        //Start turning
-        if (!is_turning_) {
-            if (abs_yaw_error_rad > min_angle_rad) {
-                is_turning_ = true;
-            }
-        } else {
-            if (abs_yaw_error_rad < release_angle_rad) {
-                is_turning_ = false;
-            } //Should end turning
+    //Start turning
+    if (!is_turning_) {
+        if (abs_yaw_error_rad > min_angle_rad) {
+            is_turning_ = true;
         }
-
-        return is_turning_ ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
+    } else {
+        if (abs_yaw_error_rad < release_angle_rad) {
+            is_turning_ = false;
+        } //Should end turning
     }
-} // namespace orca_nav2
 
-#include "behaviortree_cpp_v3/bt_factory.h"
+    return is_turning_ ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
+}
+
+}  // namespace orca_nav2
+
+
 BT_REGISTER_NODES(factory)
 {
     factory.registerNodeType<orca_nav2::IsSharpTurnCheck>("IsSharpTurn");
