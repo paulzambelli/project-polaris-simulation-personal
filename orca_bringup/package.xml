@@ -26,6 +26,7 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>lifecycle_msgs</exec_depend>
 
   <!-- Required for sim_launch.py (clock, odom, /ocean_current bridges). -->
   <exec_depend>ros_gz_bridge</exec_depend>
