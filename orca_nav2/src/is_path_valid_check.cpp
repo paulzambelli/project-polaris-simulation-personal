@@ -36,12 +36,6 @@ IsPathValidCheck::IsPathValidCheck(
 : BT::ConditionNode(condition_name, conf)
 {
 }
-IsPathValidCheck::IsPathValidCheck(
-  const std::string & condition_name,
-  const BT::NodeConfiguration & conf)
-: BT::ConditionNode(condition_name, conf)
-{
-}
 
 BT::NodeStatus IsPathValidCheck::tick()
 {
@@ -78,7 +72,6 @@ BT::NodeStatus IsPathValidCheck::tick()
   return BT::NodeStatus::SUCCESS;
 }
 
-}  // namespace orca_nav2
 }  // namespace orca_nav2
 
 BT_REGISTER_NODES(factory)
