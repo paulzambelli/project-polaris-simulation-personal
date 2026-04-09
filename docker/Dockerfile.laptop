@@ -139,7 +139,7 @@ COPY --chown=$USER_UID:$USER_GID comms/mavlink_bridge/package.xml src/orca4/comm
 
 # Run rosdep over orca4 package.xml files
 RUN rosdep update \
-  && rosdep install -y --from-paths . --ignore-src --skip-keys="pymavlink"
+  && rosdep install -y --from-paths . --ignore-src --skip-keys="pymavlink ros_gz_bridge"
 
 # Install pymavlink manually (keep setuptools<80 so colcon can build ament_python packages)
 RUN pip3 install --user "setuptools<80" pymavlink
