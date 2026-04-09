@@ -9,8 +9,9 @@ ros2 run orca_bringup WSG84_mission_starter.py
 ```
 
 ## Start current in m/s
+`/orca_bringup/scripts/current_vector_node.py`
 ```bash
-ros2 run orca_bringup current_vector_node.py --ros-args -p direction:="x, con_xy, ramp_xyz" -p amplitude:=5.0 -p period:=2.0
+ros2 run orca_bringup current_vector_node.py --ros-args -p direction:="x, con_xy, ramp_xyz" -p amplitude:=0.8 -p period:=15.0
 ```
 
 ## Tracking errors: rosbag → CSV (Docker vs host)
