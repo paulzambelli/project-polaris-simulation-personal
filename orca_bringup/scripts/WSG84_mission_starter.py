@@ -106,7 +106,6 @@ def wait_for_follow_waypoints(executor, action_client, timeout_sec: float = 300.
         if time.time() - start >= timeout_sec:
             print(
                 f'Timed out after {timeout_sec:.0f}s waiting for /follow_waypoints. '
-                'Is sim_launch running with nav:=true? Did you source install/setup.bash? '
                 'Check: ros2 action list | grep follow ; ros2 lifecycle get /waypoint_follower'
             )
             return False

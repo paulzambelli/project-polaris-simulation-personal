@@ -98,23 +98,21 @@ def ensure_armed_and_mode_guided(
     _ = node
     deadline = time.time() + heartbeat_wait_sec
     print(
-        f'Checking /pixhawk/heartbeat (up to {heartbeat_wait_sec:.1f}s); '
-        'aborting mission if not ready — no long wait.',
-        flush=True,
-    )
+        f'Checking /pixhawk/heartbeat (up to {heartbeat_wait_sec:.1f}s)',
+        flush=True,)
     while rclpy.ok() and time.time() < deadline:
         if state.last_msg_time > 0.0:
             break
         _spin(executor, poll_sec)
     else:
         print(
-            'No Pixhawk heartbeat yet; skipping mission (Nav2 goal not sent).',
+            'No Pixhawk heartbeat yet.',
             flush=True,
         )
         return False
 
     print(
-        f'Heartbeat: mode={state.mode}, armed={int(state.armed)} — attempting arm + GUIDED once.',
+        f'Heartbeat: mode={state.mode}, armed={int(state.armed)} — attempting once',
         flush=True,
     )
 
@@ -123,7 +121,7 @@ def ensure_armed_and_mode_guided(
     _spin_for(executor, settle_after_arm_sec, poll_sec)
     if not state.armed:
         print(
-            f'Not armed after brief settle (mode={state.mode!r}); skipping mission.',
+            f'Not armed; skipping mission.',
             flush=True,
         )
         return False
@@ -134,7 +132,7 @@ def ensure_armed_and_mode_guided(
     _spin_for(executor, settle_after_guided_sec, poll_sec)
     if not mode_matches(state.mode, 'GUIDED'):
         print(
-            f'Not in GUIDED after brief settle (mode={state.mode!r}); skipping mission.',
+            f'Not in GUIDED; skipping mission.',
             flush=True,
         )
         return False

@@ -97,7 +97,7 @@ class CurrentVector(Node):
 
 
         self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: x=%.2f y=%.2f z=%.2f' % (msg.x, msg.y, msg.z))
+        #self.get_logger().info('Publishing: x=%.2f y=%.2f z=%.2f' % (msg.x, msg.y, msg.z))
 
 
 def main(args=None) -> None:
