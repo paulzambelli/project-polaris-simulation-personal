@@ -33,13 +33,14 @@ public:
     BT::NodeStatus tick() override;
 
 private:
-    bool is_turning_;
+    bool is_replaning_;
+    bool prev_is_replaning_;
 };
 
 IsSharpTurnCheck::IsSharpTurnCheck(
     const std::string & condition_name,
     const BT::NodeConfiguration & conf)
-: BT::ConditionNode(condition_name, conf), is_turning_(false)
+: BT::ConditionNode(condition_name, conf), is_replaning_(false), prev_is_replaning_(false)
 {
 }
 
@@ -81,17 +82,37 @@ BT::NodeStatus IsSharpTurnCheck::tick()
     // Like Schmitt-trigger behaviour.
 
     //Start turning
-    if (!is_turning_) {
+    if (!is_replaning_) {
         if (abs_yaw_error_rad > min_angle_rad) {
-            is_turning_ = true;
+            is_replaning_ = true;
         }
     } else {
         if (abs_yaw_error_rad < release_angle_rad) {
-            is_turning_ = false;
+            is_replaning_ = false;
         } //Should end turning
     }
 
-    return is_turning_ ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
+    // if (is_replaning_ != prev_is_replaning_)
+    // {
+    //     if (is_replaning_) {
+    //         RCLCPP_INFO(rclcpp::get_logger("bt_is_sharp_turn"), 
+    //             "SHARPTURN CON: ON (Error: %.2f, Limit: %.2f)", yaw_error_rad, min_angle_rad);
+    //     } else {
+    //         RCLCPP_INFO(rclcpp::get_logger("bt_is_sharp_turn"), 
+    //             "PUREPURSUITE CONT: ON (Error: %.2f, Limit: %.2f)", yaw_error_rad, release_angle_rad);
+    //     }
+    //     prev_is_replaning_ = is_replaning_;
+    // }
+
+    if (is_replaning_) {
+        RCLCPP_INFO(rclcpp::get_logger("bt_is_sharp_turn"), 
+            "SHARPTURN CON: ON (Error: %.2f, Limit: %.2f)", yaw_error_rad, min_angle_rad);
+    } else {
+        RCLCPP_INFO(rclcpp::get_logger("bt_is_sharp_turn"), 
+            "PUREPURSUIT CONT: ON (Error: %.2f, Limit: %.2f)", yaw_error_rad, release_angle_rad);
+    }
+
+    return is_replaning_ ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
 }
 
 }  // namespace orca_nav2

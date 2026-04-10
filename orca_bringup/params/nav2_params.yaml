@@ -124,7 +124,7 @@ controller_server:
       z_accel: 0.3
       yaw_vel: 0.25
       yaw_accel: 0.5
-      yaw_P_gain: 0.05 # TODO: Needs to be the one of ArduSub!!
+      yaw_P_gain: 0.02 # TODO: Very small
 
       # The motion model may be bogus, so actual velocity may be lower or higher than desired
       # velocity. Specify a range using the error terms, e.g.,

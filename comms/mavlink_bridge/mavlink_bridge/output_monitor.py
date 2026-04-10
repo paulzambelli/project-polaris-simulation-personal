@@ -48,9 +48,9 @@ class OutputMonitor(Node):
         self.create_subscription(Imu, "/pixhawk/attitude", self.attitude_cb, 10)
         self.create_subscription(Int16MultiArray, "/pixhawk/rc_channels", self.rc_cb, 10)
         self.create_subscription(Twist, "/pixhawk/cmd_vel", self.cmd_vel_cb, SUB_QOS_DEPTH)
-        self.create_subscription(
-            FluidPressure, "/pixhawk/scaled_pressure", self.pressure_cb, 10
-        )
+        # self.create_subscription(
+        #     FluidPressure, "/pixhawk/scaled_pressure", self.pressure_cb, 10
+        # )
 
         self.timer = self.create_timer(0.5, self.print_dashboard)  # 5Hz refresh rate
 
@@ -122,9 +122,9 @@ class OutputMonitor(Node):
         print(f"Yaw: {self.yaw}")
 
         # From SCALED_PRESSURE(1..3) via mavlink_publisher (valid press_abs only; hPa×100 -> Pa).
-        print(f"Pressure (abs est., Pa): {self.pressure_diff}")
+        # print(f"Pressure (abs est., Pa): {self.pressure_diff}")
 
-        print(f"RC Channels: {list(self.rc_channels)}")
+        # print(f"RC Channels: {list(self.rc_channels)}")
         cv = self.cmd_velocity
         print(
             "cmd_vel (lin x,y,z | ang x,y,z): "
