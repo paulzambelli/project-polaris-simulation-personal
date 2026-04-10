@@ -111,7 +111,8 @@ def generate_launch_description():
             description='Launch rviz?',
         ),
 
-        # Bag PurePursuitController3D tracking: errors + pose/closest/twist (same publish_tracking_error gate).
+        # Bag PurePursuitController3D tracking: errors + pose/closest/twist (same publish_tracking_error gate)
+        # plus /ocean_current (geometry_msgs/Vector3) from Gazebo bridge or current_vector_node.
         ExecuteProcess(
             cmd=[
                 'ros2', 'bag', 'record',
@@ -121,6 +122,7 @@ def generate_launch_description():
                 '/pure_pursuit_closest_point_map',
                 '/pure_pursuit_robot_pose_map',
                 '/pure_pursuit_robot_twist',
+                '/ocean_current',
             ],
             output='screen',
             condition=IfCondition(LaunchConfiguration('bag')),
