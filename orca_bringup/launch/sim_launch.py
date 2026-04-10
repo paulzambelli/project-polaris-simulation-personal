@@ -137,6 +137,7 @@ def generate_launch_description():
                 ExecuteProcess(
                     cmd=[
                         'ros2', 'topic', 'pub', '--once',
+                        '--qos-durability', 'transient_local',
                         '/ocean_current', 'geometry_msgs/msg/Vector3',
                         '{x: 0.0, y: 0.0, z: 0.0}',
                     ],
