@@ -128,6 +128,24 @@ def generate_launch_description():
             condition=IfCondition(LaunchConfiguration('bag')),
         ),
 
+        # One explicit /ocean_current = (0,0,0) for bags: marks a baseline time in the log for
+        # later comparison (CSV wide merge sees a real zero once bridge/record are up). Delay so
+        # ros2 bag record is already subscribed.
+        TimerAction(
+            period=5.0,
+            actions=[
+                ExecuteProcess(
+                    cmd=[
+                        'ros2', 'topic', 'pub', '--once',
+                        '/ocean_current', 'geometry_msgs/msg/Vector3',
+                        '{x: 0.0, y: 0.0, z: 0.0}',
+                    ],
+                    output='log',
+                    condition=IfCondition(LaunchConfiguration('bag')),
+                ),
+            ],
+        ),
+
         # Launch rviz
         ExecuteProcess(
             cmd=['rviz2', '-d', rviz_file],
