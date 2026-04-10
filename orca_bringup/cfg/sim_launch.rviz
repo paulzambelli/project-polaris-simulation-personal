@@ -27,10 +27,10 @@ Panels:
 Visualization Manager:
   Class: ""
   Displays:
-    - Alpha: 0.5
+    - Alpha: 0.8
       Cell Size: 1
       Class: rviz_default_plugins/Grid
-      Color: 50; 50; 150
+      Color: 90; 120; 255
       Enabled: true
       Line Style:
         Line Width: 0.05
@@ -45,7 +45,7 @@ Visualization Manager:
       Plane Cell Count: 200
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 0.4
+    - Alpha: 0.8
       Cell Size: 1
       Class: rviz_default_plugins/Grid
       Color: 150; 50; 50
@@ -55,7 +55,7 @@ Visualization Manager:
       Plane Cell Count: 200
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 0.4
+    - Alpha: 0.8
       Cell Size: 1
       Class: rviz_default_plugins/Grid
       Color: 50; 150; 50
