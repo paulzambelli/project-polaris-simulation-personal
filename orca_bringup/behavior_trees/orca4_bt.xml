@@ -28,6 +28,36 @@
   </BehaviorTree>
 </root>  -->
 
+<!-- <root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="10" name="NavigateRecovery">
+
+      <PipelineSequence name="NavigateWithReplanning">
+
+        <RateController hz="1.0">
+          <Fallback>
+            <Sequence>
+              <GoalUpdated/>
+              <ComputePathToPose goal="{goal}" path="{path}" planner_id="StraightLine"/>
+            </Sequence>
+            <IsStraightPathValid path="{path}" max_dist="1.5"/>
+            <ComputePathToPose goal="{goal}" path="{path}" planner_id="StraightLine"/>
+          </Fallback>
+        </RateController>
+
+        <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>
+
+      </PipelineSequence>
+
+      <ReactiveFallback name="RecoveryFallback">
+        <GoalUpdated/>
+        <Wait wait_duration="2"/>
+      </ReactiveFallback>
+
+    </RecoveryNode>
+  </BehaviorTree>
+</root> -->
+
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="10" name="NavigateRecovery">
@@ -36,7 +66,7 @@
         
         <RateController hz="1.0"> 
           <Fallback>
-            <IsStraightPathValid path="{path}" max_dist="1.5"/> 
+            <IsStraightPathValid path="{path}" goal="{goal}" max_dist="1.5" xy_goal_tolerance="0.3" z_goal_tolerance="0.2"/>
             <ComputePathToPose goal="{goal}" path="{path}" planner_id="StraightLine"/>
           </Fallback>
         </RateController>

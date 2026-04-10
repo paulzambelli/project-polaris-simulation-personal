@@ -70,8 +70,10 @@ def publish_disarm_and_spin(executor, node, arm_pub, spins: int = 30) -> None:
         except Exception:
             break
 
-
-def default_mission_csv_path() -> str:
+# *************************************
+# Changed that for only straight lines!!!!!!!!!!!!!!!!!!!!!!!!!!
+# *************************************
+def default_mission_csv_path() -> str: 
     share = get_package_share_directory('orca_bringup')
     return f'{share}/missions/straight_line_mission.csv'
 
