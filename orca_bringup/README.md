@@ -21,6 +21,16 @@ ros2 topic pub -1 /pixhawk/mode_cmd std_msgs/msg/String "{data: GUIDED}"
 ros2 topic pub -r 20 /pixhawk/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"
 ```
 
+## Make step reponses from max distence of max. dist for replan
+Change in `/orca_description/worlds/sand.world` the lines at pose ENU!. So for step would change the y value (2nd one!).
+```bash
+    <include>
+      <uri>model://orca4</uri>
+      <pose>0 0 -0.2 0 0 0</pose>
+    </include>
+```
+
+
 ## Tracking errors: rosbag → CSV (Docker vs host)
 
 The Nav2 plugin `orca_nav2/PurePursuitController3D` can publish six diagnostics
