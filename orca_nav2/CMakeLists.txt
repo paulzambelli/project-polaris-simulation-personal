@@ -90,6 +90,13 @@ ament_target_dependencies(move_up_down_action ${_orca_nav2_bt_plugin_deps})
 target_link_libraries(move_up_down_action) # Can be deleted?!
 target_compile_definitions(move_up_down_action PRIVATE BT_PLUGIN_EXPORT)
 
+# --- Store Active Goal Action ---
+ament_auto_add_library(store_active_goal_action SHARED src/store_active_goal_action.cpp)
+target_include_directories(store_active_goal_action PRIVATE include)
+ament_target_dependencies(store_active_goal_action ${_orca_nav2_bt_plugin_deps})
+target_link_libraries(store_active_goal_action) # Can be deleted?!
+target_compile_definitions(store_active_goal_action PRIVATE BT_PLUGIN_EXPORT)
+
 
 # --- Controller (both Nav2 controller plugins live in one shared library; see orca_controllers_plugins.xml)
 ament_auto_add_library(pure_pursuit_controller_3d SHARED
