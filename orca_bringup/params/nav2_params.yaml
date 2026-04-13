@@ -63,6 +63,7 @@ bt_navigator:
       - is_path_valid_check
       - is_sharp_turn_check
       - is_close_to_ice
+      - go_up_to_ice_action
 
 bt_navigator_rclcpp_node:
   ros__parameters:
