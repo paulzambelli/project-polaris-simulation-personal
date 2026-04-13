@@ -70,7 +70,7 @@ target_link_libraries(is_close_to_ice_check) # Can be deleted?!
 target_compile_definitions(is_close_to_ice_check PRIVATE BT_PLUGIN_EXPORT)
 
 # --- Is ice measurement check ---
-ament_auto_add_library(is_ice_measurement_stop_check SHARED src/is_ice_measurement_stop.cpp)
+ament_auto_add_library(is_ice_measurement_stop_check SHARED src/is_ice_measurement_stop_check.cpp)
 target_include_directories(is_ice_measurement_stop_check PRIVATE include)
 ament_target_dependencies(is_ice_measurement_stop_check ${_orca_nav2_bt_plugin_deps})
 target_link_libraries(is_ice_measurement_stop_check) # Can be deleted?!
@@ -83,19 +83,13 @@ ament_target_dependencies(is_gps_fix_good_check ${_orca_nav2_bt_plugin_deps} sen
 target_link_libraries(is_gps_fix_good_check) # Can be deleted?!
 target_compile_definitions(is_gps_fix_good_check PRIVATE BT_PLUGIN_EXPORT)
 
-# --- Go Up To Ice Action ---
-ament_auto_add_library(go_up_to_ice_action SHARED src/go_up_to_ice_action.cpp)
-target_include_directories(go_up_to_ice_action PRIVATE include)
-ament_target_dependencies(go_up_to_ice_action ${_orca_nav2_bt_plugin_deps})
-target_link_libraries(go_up_to_ice_action) # Can be deleted?!
-target_compile_definitions(go_up_to_ice_action PRIVATE BT_PLUGIN_EXPORT)
+# --- Go Up/Down Ice Action ---
+ament_auto_add_library(move_up_down_action SHARED src/move_up_down_action.cpp)
+target_include_directories(move_up_down_action PRIVATE include)
+ament_target_dependencies(move_up_down_action ${_orca_nav2_bt_plugin_deps})
+target_link_libraries(move_up_down_action) # Can be deleted?!
+target_compile_definitions(move_up_down_action PRIVATE BT_PLUGIN_EXPORT)
 
-# --- Go Down From Ice Action ---
-ament_auto_add_library(go_down_from_ice_action SHARED src/go_down_from_ice_action.cpp)
-target_include_directories(go_down_from_ice_action PRIVATE include)
-ament_target_dependencies(go_down_from_ice_action ${_orca_nav2_bt_plugin_deps})
-target_link_libraries(go_down_from_ice_action) # Can be deleted?!
-target_compile_definitions(go_down_from_ice_action PRIVATE BT_PLUGIN_EXPORT)
 
 # --- Controller (both Nav2 controller plugins live in one shared library; see orca_controllers_plugins.xml)
 ament_auto_add_library(pure_pursuit_controller_3d SHARED

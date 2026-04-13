@@ -11,17 +11,17 @@
 namespace orca_nav2
 {
 
-class GoUpToIceAction : public BT::ActionNodeBase
+class MoveUpDownAction : public BT::ActionNodeBase
 {
 public:
-  GoUpToIceAction(
+  MoveUpDownAction(
     const std::string & name,
     const BT::NodeConfiguration & conf);
 
   static BT::PortsList providedPorts()
   {
     return {
-      BT::InputPort<double>("upward_speed", -0.05, "Upward speed for ice measurement."),
+      BT::InputPort<double>("speed", 0.0, "Vertical speed in base_link (+z up, -z down) [m/s]."),
     };
   }
   BT::NodeStatus tick() override;
@@ -35,56 +35,51 @@ private:
 };
 
 
-GoUpToIceAction::GoUpToIceAction(
+MoveUpDownAction::MoveUpDownAction(
   const std::string & name,
   const BT::NodeConfiguration & conf)
 : BT::ActionNodeBase(name, conf)
 {
   if (!config().blackboard->get<rclcpp::Node::SharedPtr>("node", node_)) {
-    RCLCPP_ERROR(rclcpp::get_logger("GoUpToIceAction"), "Failed to get 'node' from blackboard");
+    RCLCPP_ERROR(rclcpp::get_logger("MoveUpDownAction"), "Failed to get 'node' from blackboard");
     throw std::runtime_error("Failed to get 'node' from blackboard");
   }
   cmd_vel_ = node_->create_publisher<geometry_msgs::msg::TwistStamped>("/pixhawk/cmd_vel", 10);
 }
 
-void GoUpToIceAction::send_velocity(double z_vel)
+void MoveUpDownAction::send_velocity(double z_vel)
 {
   geometry_msgs::msg::TwistStamped msg;
-  
-  // Fill the Header
+
   msg.header.stamp = node_->now();
   msg.header.frame_id = "base_link";
 
-  // Fill the Twist
   msg.twist.linear.z = z_vel;
   msg.twist.linear.x = 0.0;
   msg.twist.linear.y = 0.0;
   msg.twist.angular.x = 0.0;
   msg.twist.angular.y = 0.0;
   msg.twist.angular.z = 0.0;
-  
+
   cmd_vel_->publish(msg);
 }
 
-BT::NodeStatus GoUpToIceAction::tick()
+BT::NodeStatus MoveUpDownAction::tick()
 {
-  double upward_speed;
-  if (!getInput<double>("upward_speed", upward_speed)) {
-    RCLCPP_ERROR(rclcpp::get_logger("GoUpToIceAction"), "Failed to get 'upward_speed' input");
+  double speed = 0.0;
+  if (!getInput<double>("speed", speed)) {
+    RCLCPP_ERROR(rclcpp::get_logger("MoveUpDownAction"), "Failed to get 'speed' input");
     return BT::NodeStatus::FAILURE;
   }
 
-  send_velocity(upward_speed);
+  send_velocity(speed);
 
   return BT::NodeStatus::RUNNING;
 }
 
-void GoUpToIceAction::halt()
+void MoveUpDownAction::halt()
 {
-  // THIS IS VITAL: Stop the robot when the action is interrupted by the Condition node!
   send_velocity(0.0);
-
-  // You must call the base class halt() at the end
   BT::ActionNodeBase::halt();
 }
 
@@ -92,6 +87,5 @@ void GoUpToIceAction::halt()
 
 BT_REGISTER_NODES(factory)
 {
-  factory.registerNodeType<orca_nav2::GoUpToIceAction>("GoUpToIceAction");
+  factory.registerNodeType<orca_nav2::MoveUpDownAction>("MoveUpDownAction");
 }
-

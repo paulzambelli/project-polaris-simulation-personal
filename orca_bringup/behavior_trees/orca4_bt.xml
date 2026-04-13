@@ -50,7 +50,7 @@
         <Wait wait_duration="2"/>
 
       </RecoveryNode>
-      
+
     </Sequence>
   </BehaviorTree>
 </root>-->
@@ -88,7 +88,7 @@
           <Sequence name="IceMeasurementSequence">
             <ReactiveFallback name="Ascend to Ice">
               <IsCloseToIce max_dist_to_ice="0.3"/>
-              <GoUpToIceAction/>
+              <MoveUpDownAction speed="0.05"/>
             </ReactiveFallback>
 
             <Timeout msec="60000">
@@ -105,7 +105,7 @@
 
             <ReactiveFallback name="Descend a little bit">
               <IsLongEnoughDown min_sec="10.0"/>
-              <GoDownAction/>
+              <MoveUpDownAction speed="-0.05"/>
             </ReactiveFallback>
           </Sequence>
         </Sequence>
