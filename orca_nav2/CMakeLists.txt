@@ -59,6 +59,11 @@ ament_target_dependencies(is_sharp_turn_check ${_orca_nav2_bt_plugin_deps})
 target_link_libraries(is_sharp_turn_check orca_nav2_path_tracking_utils)
 target_compile_definitions(is_sharp_turn_check PRIVATE BT_PLUGIN_EXPORT)
 
+ament_auto_add_library(is_close_to_ice SHARED src/is_close_to_ice.cpp)
+target_include_directories(is_close_to_ice PRIVATE include)
+ament_target_dependencies(is_close_to_ice ${_orca_nav2_bt_plugin_deps} rclcpp std_msgs)
+target_compile_definitions(is_close_to_ice PRIVATE BT_PLUGIN_EXPORT)
+
 # --- Controller (both Nav2 controller plugins live in one shared library; see orca_controllers_plugins.xml)
 ament_auto_add_library(pure_pursuit_controller_3d SHARED
   src/pure_pursuit_controller_3d.cpp

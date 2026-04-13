@@ -62,6 +62,7 @@ bt_navigator:
       - nav2_is_battery_charging_condition_bt_node
       - is_path_valid_check
       - is_sharp_turn_check
+      - is_close_to_ice
 
 bt_navigator_rclcpp_node:
   ros__parameters:
