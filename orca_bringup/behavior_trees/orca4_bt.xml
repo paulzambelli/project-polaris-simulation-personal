@@ -40,7 +40,7 @@
         <PipelineSequence name="NavigateWithReplanning">
           
           <RateController hz="1.0"> 
-              <ComputePathToPose goal="{goal}" path="{path}" planner_id="StraightLine"/>
+              <ComputePathToPose goal="{active_goal}" path="{path}" planner_id="StraightLine"/>
           </RateController>
           
           <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>
