@@ -20,15 +20,8 @@ DEFAULT_HOLD_S = 1.0
 @dataclass(frozen=True)
 class WaypointMeta:
     """Per-row mission metadata parallel to each ``PoseStamped`` from the same CSV row."""
-
     up_down: bool = False
     """If True, run up → hold → down after Nav2 reports the waypoint reached."""
-
-    delta_z_m: float = DEFAULT_DELTA_Z_M
-    """Heave distance in map ENU Up (meters); used when ``up_down`` is True."""
-
-    hold_s: float = DEFAULT_HOLD_S
-    """Seconds to hold at the top before descending."""
 
 
 def _row_lower(row: dict) -> dict:
@@ -51,15 +44,9 @@ def _parse_optional_float(raw: str, default: float) -> float:
 
 def _meta_from_row(row_l: dict) -> WaypointMeta:
     # CSV: prefer column ``up_down``; ``vertical_bump`` still accepted as an alias.
-    bump_raw = row_l.get('up_down', '') or row_l.get('vertical_bump', '')
-    bump = _parse_up_down_flag(bump_raw)
-    dz = _parse_optional_float(row_l.get('delta_z_m', ''), DEFAULT_DELTA_Z_M)
-    hold = _parse_optional_float(row_l.get('hold_s', ''), DEFAULT_HOLD_S)
-    if dz < 0.0:
-        raise ValueError(f'delta_z_m must be non-negative, got {dz!r}')
-    if hold < 0.0:
-        raise ValueError(f'hold_s must be non-negative, got {hold!r}')
-    return WaypointMeta(up_down=bump, delta_z_m=dz, hold_s=hold)
+    bump_raw = row_l.get('up_down', '')
+    bump = _parse_up_down_flag(bump_raw)    
+    return WaypointMeta(up_down=bump)
 
 # sources: https://gssc.esa.int/navipedia/index.php?title=Ellipsoidal_and_Cartesian_Coordinates_Conversion&action=edit
 # sources: https://gssc.esa.int/navipedia/index.php/Transformations_between_ECEF_and_ENU_coordinates
@@ -94,8 +81,12 @@ def diff_ecef_to_enu(lat0_rad: float, lon0_rad: float, dx: float, dy: float, dz:
     return east, north, up
 
 
-def make_pose(x: float, y: float, z: float) -> PoseStamped:
-    return PoseStamped(header=Header(frame_id='map'), pose=Pose(position=Point(x=x, y=y, z=z)))
+def make_pose(x: float, y: float, z: float, meta: WaypointMeta) -> PoseStamped:
+    fid = 'map_ice_measurement' if meta.up_down else 'map'
+    return PoseStamped(
+        header=Header(frame_id=fid),
+        pose=Pose(position=Point(x=x, y=y, z=z))
+    )
 
 
 def process_mission(
@@ -144,8 +135,9 @@ def process_mission(
             x, y, z = wgs84_to_ecef(lat_rad, lon_rad, alt)
             dx, dy, dz = x - x0, y - y0, z - z0
             e, n, u = diff_ecef_to_enu(lat0_rad, lon0_rad, dx, dy, dz)
-            waypoints_enu.append(make_pose(e, n, u))
-            meta_list.append(_meta_from_row(row_l))
+            meta = _meta_from_row(row_l)
+            waypoints_enu.append(make_pose(e, n, u, meta))
+            meta_list.append(meta)
 
     if not waypoints_enu:
         raise ValueError(f'No waypoints read from {path}')
