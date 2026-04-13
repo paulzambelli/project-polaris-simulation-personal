@@ -90,6 +90,13 @@ ament_target_dependencies(go_up_to_ice_action ${_orca_nav2_bt_plugin_deps})
 target_link_libraries(go_up_to_ice_action) # Can be deleted?!
 target_compile_definitions(go_up_to_ice_action PRIVATE BT_PLUGIN_EXPORT)
 
+# --- Go Down From Ice Action ---
+ament_auto_add_library(go_down_from_ice_action SHARED src/go_down_from_ice_action.cpp)
+target_include_directories(go_down_from_ice_action PRIVATE include)
+ament_target_dependencies(go_down_from_ice_action ${_orca_nav2_bt_plugin_deps})
+target_link_libraries(go_down_from_ice_action) # Can be deleted?!
+target_compile_definitions(go_down_from_ice_action PRIVATE BT_PLUGIN_EXPORT)
+
 # --- Controller (both Nav2 controller plugins live in one shared library; see orca_controllers_plugins.xml)
 ament_auto_add_library(pure_pursuit_controller_3d SHARED
   src/pure_pursuit_controller_3d.cpp

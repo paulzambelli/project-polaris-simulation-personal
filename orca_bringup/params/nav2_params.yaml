@@ -65,6 +65,7 @@ bt_navigator:
       - is_close_to_ice_check
       - is_gps_fix_good_check
       - go_up_to_ice_action
+      - go_down_from_ice_action
 
 bt_navigator_rclcpp_node:
   ros__parameters:
