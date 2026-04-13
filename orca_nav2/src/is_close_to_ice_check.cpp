@@ -33,7 +33,7 @@ public:
   BT::NodeStatus tick() override;
 
 private:
-  void IsCloseToIce::distanceToIceCallback(std_msgs::msg::Float32::SharedPtr msg);
+  void distanceToIceCallback(std_msgs::msg::Float32::SharedPtr msg);
 
   rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr subscription_;
   std::atomic<double> current_ice_distance_{0.0};
@@ -55,7 +55,7 @@ IsCloseToIce::IsCloseToIce(
   
   subscription_ = node->create_subscription<std_msgs::msg::Float32>(
     "/top/ultrasonic/distance",
-    10,
+    rclcpp::SensorDataQoS(),
     std::bind(&IsCloseToIce::distanceToIceCallback, this, _1)
   );
 }
