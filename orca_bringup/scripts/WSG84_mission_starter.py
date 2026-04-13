@@ -73,7 +73,7 @@ def publish_disarm_and_spin(executor, node, arm_pub, spins: int = 30) -> None:
 
 def default_mission_csv_path() -> str:
     share = get_package_share_directory('orca_bringup')
-    return f'{share}/missions/default_wgs84_mission.csv'
+    return f'{share}/missions/straight_line_mission.csv'
 
 
 def default_mission_origin_path() -> str:
