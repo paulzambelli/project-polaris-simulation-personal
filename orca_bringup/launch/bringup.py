@@ -32,7 +32,7 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription, SetEnvironmentVariable
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription, SetEnvironmentVariable, Node
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
@@ -110,15 +110,26 @@ def generate_launch_description():
         ),
 
         # If base controller is disabled, keep map and odom aligned.
-        ExecuteProcess(
-            cmd=['/opt/ros/humble/lib/tf2_ros/static_transform_publisher',
-                 '--frame-id', 'map',
-                 '--child-frame-id', 'odom'],
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='map_to_odom_tf_publisher',
+            arguments=['--frame-id', 'map', '--child-frame-id', 'odom'],
             output='screen',
             condition=UnlessCondition(LaunchConfiguration('base')),
         ),
 
         # Include the rest of Nav2
+        # Frame for Ice Measurement behavior tree logic
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='ice_measurement_tf_publisher',
+            # X Y Z Yaw Pitch Roll Parent_Frame Child_Frame
+            arguments=['0', '0', '0', '0', '0', '0', 'map', 'map_ice_measurement'],
+            output='screen'
+        ),
+
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(orca_bringup_dir, 'launch', 'navigation_launch.py')),
             launch_arguments={
