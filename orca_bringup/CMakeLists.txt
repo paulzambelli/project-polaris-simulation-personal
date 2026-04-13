@@ -21,6 +21,7 @@ install(
   scripts/mission_runner.py
   scripts/current_vector_node.py
   scripts/odom_to_tf.py
+  scripts/simulate_distance_sensor.py
   scripts/WSG84_mission_starter.py
   DESTINATION lib/${PROJECT_NAME}
 )
