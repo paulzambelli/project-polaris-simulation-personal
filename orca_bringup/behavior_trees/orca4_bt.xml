@@ -1,11 +1,11 @@
 <!--
-  A simple behavior tree that replans at 1Hz. Recovery consists of waiting (drifting while hovering)
-  for a few seconds. Orca4 doesn't use costmaps, so there's no need to clear them.
-  RateController re-calculates the path iff the lookahead-distance CANNOT reach the deired path.
+  Per-waypoint leg: pin {goal} -> {active_goal} once, then replan at 1 Hz to {active_goal}, follow,
+  recover with Wait only (retries {active_goal}); no GoalUpdated so live {goal} changes cannot desync replans from the pin.
+  Orca4 skips costmap clears. Requires StoreActiveGoal (custom) and any optional ice nodes you add.
   Starting point: navigate_w_replanning_and_recovery.xml
 -->
 
-<root main_tree_to_execute="MainTree">
+<!-- Behaviour tree BASIC <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="10" name="NavigateRecovery">
       
@@ -26,7 +26,98 @@
       
     </RecoveryNode>
   </BehaviorTree>
+</root>-->
+
+
+<!-- Behaviour tree 2: TEST FIRST!!!!!!!!!!!!!!! <root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+
+    <Sequence name="One Leg of Mission">
+      <StoreActiveGoal input_goal="{goal}" stored_goal="{active_goal}"/>
+
+      <RecoveryNode number_of_retries="10" name="NavigateRecovery">
+        
+        <PipelineSequence name="NavigateWithReplanning">
+          
+          <RateController hz="1.0"> 
+              <ComputePathToPose goal="{goal}" path="{path}" planner_id="StraightLine"/>
+          </RateController>
+          
+          <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>
+        
+        </PipelineSequence>
+        
+        <Wait wait_duration="2"/>
+
+      </RecoveryNode>
+      
+    </Sequence>
+  </BehaviorTree>
+</root>-->
+
+
+
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence name="One Leg of Mission">
+
+      <StoreActiveGoal input_goal="{goal}" stored_goal="{active_goal}"/>
+
+      <RecoveryNode number_of_retries="10" name="NavigateRecovery">
+
+        <PipelineSequence name="NavigateWithReplanning">
+
+          <RateController hz="1.0">
+            <ComputePathToPose goal="{active_goal}" path="{path}" planner_id="StraightLine"/>
+          </RateController>
+
+          <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>
+
+        </PipelineSequence>
+
+        <!-- No GoalUpdated: mission uses strict sequential waypoints; new goals cancel/restart the
+             tree. Recovery only waits and retries {active_goal}. -->
+        <Wait wait_duration="2.0"/>
+
+      </RecoveryNode>
+
+      <Fallback name="IceStationProcessGate">
+        <Sequence name="IceStationExecution">
+          <IsIceMeasurementStop goal="{active_goal}"/>
+
+          <Sequence name="IceMeasurementSequence">
+            <ReactiveFallback name="Ascend to Ice">
+              <IsCloseToIce max_dist_to_ice="0.3"/>
+              <GoUpToIceAction/>
+            </ReactiveFallback>
+
+            <Timeout msec="60000">
+              <Sequence>
+                <Wait wait_duration="10.0"/>
+                <RetryUntilSuccessful num_attempts="-1">
+                  <Sequence>
+                    <IsGPSFixGood max_xy_accuracy="2.0"/>
+                    <Wait wait_duration="1.0"/>
+                  </Sequence>
+                </RetryUntilSuccessful>
+              </Sequence>
+            </Timeout>
+
+            <ReactiveFallback name="Descend a little bit">
+              <IsLongEnoughDown min_sec="10.0"/>
+              <GoDownAction/>
+            </ReactiveFallback>
+          </Sequence>
+        </Sequence>
+
+        <AlwaysSuccess/>
+      </Fallback>
+
+    </Sequence>
+  </BehaviorTree>
 </root>
+
+
 
 
 <!--<root main_tree_to_execute="MainTree">
