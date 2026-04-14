@@ -65,7 +65,7 @@ target_compile_definitions(is_sharp_turn_check PRIVATE BT_PLUGIN_EXPORT)
 # --- Is close to ice check ---
 ament_auto_add_library(is_close_to_ice_check SHARED src/is_close_to_ice_check.cpp)
 target_include_directories(is_close_to_ice_check PRIVATE include)
-ament_target_dependencies(is_close_to_ice_check ${_orca_nav2_bt_plugin_deps} rclcpp std_msgs)
+ament_target_dependencies(is_close_to_ice_check ${_orca_nav2_bt_plugin_deps} std_msgs)
 target_link_libraries(is_close_to_ice_check) # Can be deleted?!
 target_compile_definitions(is_close_to_ice_check PRIVATE BT_PLUGIN_EXPORT)
 
@@ -82,6 +82,13 @@ target_include_directories(is_gps_fix_good_check PRIVATE include)
 ament_target_dependencies(is_gps_fix_good_check ${_orca_nav2_bt_plugin_deps} sensor_msgs)
 target_link_libraries(is_gps_fix_good_check) # Can be deleted?!
 target_compile_definitions(is_gps_fix_good_check PRIVATE BT_PLUGIN_EXPORT)
+
+# --- Is long enough down check ---
+ament_auto_add_library(is_long_enough_down_check SHARED src/is_long_enough_down_check.cpp)
+target_include_directories(is_long_enough_down_check PRIVATE include)
+ament_target_dependencies(is_long_enough_down_check ${_orca_nav2_bt_plugin_deps})
+target_link_libraries(is_long_enough_down_check) # Can be deleted?!
+target_compile_definitions(is_long_enough_down_check PRIVATE BT_PLUGIN_EXPORT)
 
 # --- Go Up/Down Ice Action ---
 ament_auto_add_library(move_up_down_action SHARED src/move_up_down_action.cpp)

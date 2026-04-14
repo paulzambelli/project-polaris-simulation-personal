@@ -8,6 +8,7 @@
 #include "behaviortree_cpp_v3/bt_factory.h"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 
+
 namespace orca_nav2
 {
 
@@ -22,6 +23,7 @@ public:
   {
     return {
       BT::InputPort<double>("speed", 0.0, "Vertical speed in base_link (+z up, -z down) [m/s]."),
+      BT::OutputPort<double>("elapsed_time", "Time it takes to move up/down [s]."),
     };
   }
   BT::NodeStatus tick() override;
@@ -32,6 +34,9 @@ private:
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_;
+
+  rclcpp::Time start_time_;
+  bool timing_ = false;
 };
 
 
@@ -72,6 +77,11 @@ BT::NodeStatus MoveUpDownAction::tick()
     return BT::NodeStatus::FAILURE;
   }
 
+  if (!timing_) {
+    start_time_ = node_->now();
+    timing_ = true;
+  }
+
   send_velocity(speed);
 
   return BT::NodeStatus::RUNNING;
@@ -79,7 +89,17 @@ BT::NodeStatus MoveUpDownAction::tick()
 
 void MoveUpDownAction::halt()
 {
-  send_velocity(0.0);
+  send_velocity(0.0);  
+
+  if (timing_) {
+    double elapsed = (node_->now() - start_time_).seconds();
+     auto res = setOutput("elapsed_time", elapsed);
+    if (res) {
+      RCLCPP_INFO(rclcpp::get_logger("MoveUpDownAction"), "Stored elapsed time: %.2f seconds", elapsed);
+    }
+    timing_ = false;
+  }
+
   BT::ActionNodeBase::halt();
 }
 
