@@ -26,7 +26,7 @@ class CurrentVector(Node):
         self.declare_parameter('direction', '')
         self.declare_parameter('amplitude', 0.0)
         self.declare_parameter('period', 0.0)
-        self.declare_parameter('noise_stddev', 0.8)
+        self.declare_parameter('noise_stddev', 0.08)
         self.declare_parameter('noise_time_constant', 1.5)
 
         self.publisher_ = self.create_publisher(
