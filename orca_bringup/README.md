@@ -1,6 +1,6 @@
 ## Start simulation (for rosbag see below)
 ```bash
-ros2 launch orca_bringup sim_launch.py (bag:=True)
+ros2 launch orca_bringup sim_launch.py
 ```
 
 ## Start mission
@@ -64,6 +64,29 @@ Toggle with `publish_tracking_error` in [`params/nav2_params.yaml`](params/nav2_
    ros2 launch orca_bringup sim_launch.py bag:=True
    ```
    Leave this running in that terminal.
+
+1. **Start rosbag manually**
+  ```bash
+   ros2 bag record --use-sim-time \
+  /pure_pursuit_cross_track_xy \
+  /pure_pursuit_vertical_error \
+  /pure_pursuit_yaw_error \
+  /pure_pursuit_closest_point_map \
+  /pure_pursuit_robot_pose_map \
+  /pure_pursuit_robot_twist \
+  /ocean_current
+   ```
+   and then in new terminal:
+   ```bash
+   ros2 topic pub --once \
+  --qos-durability transient_local \
+  /ocean_current geometry_msgs/msg/Vector3 \
+  "{x: 0.0, y: 0.0, z: 0.0}"
+   ```
+   Stop with in rosbag terminal
+   ```bash
+   Ctrl+C
+   ```
 
 2. **Run a mission** (second terminal **inside the same container**, with workspace sourced):
    ```bash
