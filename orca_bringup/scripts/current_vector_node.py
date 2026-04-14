@@ -21,7 +21,7 @@ import random
 class CurrentVector(Node):
 
     def __init__(self):
-        super().__init__()
+        super().__init__('current_vector')
 
         self.declare_parameter('direction', '')
         self.declare_parameter('amplitude', 0.0)
