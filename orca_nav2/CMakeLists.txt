@@ -45,6 +45,7 @@ set(_orca_nav2_bt_plugin_deps
   behaviortree_cpp_v3
   nav2_behavior_tree
   nav2_util
+  rclcpp
 )
 
 

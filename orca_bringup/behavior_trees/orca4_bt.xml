@@ -104,7 +104,7 @@
             </Timeout>
 
             <ReactiveFallback name="Descend a little bit">
-              <IsLongEnoughDown min_time="{ascent_duration}"/>
+              <IsLongEnoughDown min_time="{ascend_duration}"/>
               <MoveUpDownAction speed="-0.05"/>
             </ReactiveFallback>
           </Sequence>

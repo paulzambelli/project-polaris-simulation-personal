@@ -19,9 +19,7 @@ public:
   static BT::PortsList providedPorts()
   {
     return {
-      BT::InputPort<geometry_msgs::msg::PoseStamped>(
-        "goal", "Current waypoint goal to check for the map_ice_station flag."
-      ),
+      BT::InputPort<geometry_msgs::msg::PoseStamped>("goal", "Current waypoint goal to check for the map_ice_station flag."),
     };
   }
 
@@ -40,9 +38,6 @@ IsIceMeasurementStop::IsIceMeasurementStop(
 BT::NodeStatus IsIceMeasurementStop::tick()
 {
   geometry_msgs::msg::PoseStamped goal;
-
-  // Here better to have the default as SUCCESS, so that if the topic is not available
-  // to robot will not drive fully into the ice.
 
   if (!getInput("goal", goal)) {
     return BT::NodeStatus::FAILURE;
