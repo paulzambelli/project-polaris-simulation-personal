@@ -84,17 +84,19 @@ cd_cross = 0.68
 _area_axial = math.pi * hull_radius**2
 _area_cross = 2.0 * hull_radius * hull_length
 
-# Added mass (xDotU = X_u_dot, ...): gz Hydrodynamics applies F ≈ -Ma * Δv/Δt (finite difference).
-# Large Ma with DART is known-unstable (gz warns in Hydrodynamics::Configure). Values from the
-# vehicle spreadsheet (e.g. Y_v_dot ≈ 34 kg > dry mass 21.6 kg) easily blow up wrenches at startup
-# so sim freezes: no odometry, no JSON to ArduSub. Keep Ma at 0 here; use quadratic drag only,
-# or migrate added mass to SDF <inertial><fluid_added_mass> (gz-sim / SDF 1.11) instead of this plugin.
-xDotU = 0.0
-yDotV = 0.0
-zDotW = 0.0
-kDotP = 0.0
-mDotQ = 0.0
-nDotR = 0.0
+# Added mass (xDotU = X_u_dot, ...): gz applies F ≈ -Ma * Δv/Δt — keep well below dry mass on
+# translational diagonals to avoid DART startup spikes. Full vehicle sheet had Y_v_dot ~ 34 kg;
+# we use modest fractions here; raise slowly if the sim stays stable.
+_added_mass_surge = 0.67
+_added_mass_sway_heave = 0.15 * mass  # ~3.24 kg
+_added_mass_roll = 0.08
+_added_mass_pitch_yaw = 1.5
+xDotU = _added_mass_surge
+yDotV = _added_mass_sway_heave
+zDotW = _added_mass_sway_heave
+kDotP = _added_mass_roll
+mDotQ = _added_mass_pitch_yaw
+nDotR = _added_mass_pitch_yaw
 
 # Linear damping (not provided on sheet; keep zero)
 xU = 0.0

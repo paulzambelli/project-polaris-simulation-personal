@@ -59,9 +59,7 @@
         name="gz::sim::systems::Hydrodynamics">
       <link_name>base_link</link_name>
       <water_density>@fluid_density</water_density>
-      <!-- Plugin Ma uses accel estimates; keep disabled unless Ma coeffs stay tiny or use link fluid_added_mass -->
-      <disable_added_mass>true</disable_added_mass>
-      <!-- Added mass coeffs (generate_model.py sets these to 0 while disable_added_mass is true): -->
+      <!-- Added mass: small coeffs in generate_model.py (large Ma + finite-diff accel is unstable). -->
       <xDotU>@xDotU</xDotU>
       <yDotV>@yDotV</yDotV>
       <zDotW>@zDotW</zDotW>
