@@ -14,7 +14,7 @@
         
         <RateController hz="1.0"> 
           <Fallback>
-            <IsStraightPathValid path="{path}" goal="{goal}" max_dist="1.0" xy_goal_tolerance="0.3" z_goal_tolerance="0.2"/>
+            <IsStraightPathValid path="{path}" goal="{goal}" max_dist="1.1" xy_goal_tolerance="0.3" z_goal_tolerance="0.2"/>
             <ComputePathToPose goal="{goal}" path="{path}" planner_id="StraightLine"/>
           </Fallback>
         </RateController>
