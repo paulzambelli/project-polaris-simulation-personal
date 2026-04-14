@@ -20,7 +20,7 @@
       
       <ReactiveFallback name="RecoveryFallback">
         <GoalUpdated/>
-        <Wait wait_duration="2"/>
+        <Wait wait_duration="3"/>
       </ReactiveFallback>
       
     </RecoveryNode>
