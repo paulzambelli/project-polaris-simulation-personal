@@ -27,7 +27,7 @@ class DistancePublisherNode(Node):
 
     def timer_callback(self):
         msg = Float32()
-        diff = 3.0 - self.pos_z
+        diff = -0.7 - self.pos_z # assuming the ice sheet is at -0.7 meters
         msg.data = diff
         self.publisher_.publish(msg)
 
