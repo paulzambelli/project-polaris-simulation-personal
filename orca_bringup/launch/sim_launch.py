@@ -203,7 +203,10 @@ def generate_launch_description():
         Node(
             package='orca_base',
             executable='odom_to_path_node',
-            output='screen'
+            output='screen',
+            parameters=[{
+                'max_poses': 5000,
+            }],
         ),
 
         # In sim-only mode, publish odom -> base_link from Gazebo odometry.
