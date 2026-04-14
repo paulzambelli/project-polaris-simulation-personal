@@ -95,7 +95,7 @@ controller_server:
       plugin: "orca_nav2/PurePursuitController3D"
       lookahead_dist: 1.0 # 0.6 max_dist lAD * 1.5
       transform_tolerance: 1.0
-      goal_tolerance: 0.4 # 0.4? but we are doing a very long strate!
+      goal_tolerance: 0.4 # 0.4? but we are doing a very long strate! pay attention goal stioll needs to be reached!!¨!!!!!!!!!!!!!!!!!
       tick_rate: 20.0
 
       x_vel: 0.4
