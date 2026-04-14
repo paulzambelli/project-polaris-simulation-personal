@@ -13,10 +13,10 @@
         <mass>@mass</mass>
         <inertia>
           <ixx>@ixx</ixx>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
+          <ixy>@ixy</ixy>
+          <ixz>@ixz</ixz>
           <iyy>@iyy</iyy>
-          <iyz>0</iyz>
+          <iyz>@iyz</iyz>
           <izz>@izz</izz>
         </inertia>
       </inertial>
@@ -30,7 +30,9 @@
         </geometry>
       </visual>
 
-      <!-- Collision volume * fluid_density == displaced mass, used by BuoyancyPlugin -->
+      <!-- Compact box for buoyancy (gz + terrain contact): long cylinder collision was
+           intersecting the world and freezing the model (no /odom, no JSON to ArduSub).
+           Hydrodynamic *drag* still uses hull cylinder dimensions in generate_model.py. -->
       <collision name="base_link_collision">
         <pose>0 0 @volume_z 0 0 0</pose>
         <geometry>
@@ -57,20 +59,22 @@
         name="gz::sim::systems::Hydrodynamics">
       <link_name>base_link</link_name>
       <water_density>@fluid_density</water_density>
-      <!-- Added mass: -->
-      <xDotU>0</xDotU>
-      <yDotV>0</yDotV>
-      <zDotW>0</zDotW>
-      <kDotP>0</kDotP>
-      <mDotQ>0</mDotQ>
-      <nDotR>0</nDotR>
+      <!-- Plugin Ma uses accel estimates; keep disabled unless Ma coeffs stay tiny or use link fluid_added_mass -->
+      <disable_added_mass>true</disable_added_mass>
+      <!-- Added mass coeffs (generate_model.py sets these to 0 while disable_added_mass is true): -->
+      <xDotU>@xDotU</xDotU>
+      <yDotV>@yDotV</yDotV>
+      <zDotW>@zDotW</zDotW>
+      <kDotP>@kDotP</kDotP>
+      <mDotQ>@mDotQ</mDotQ>
+      <nDotR>@nDotR</nDotR>
       <!-- First order stability derivative: -->
-      <xU>0</xU>
-      <yV>0</yV>
-      <zW>0</zW>
-      <kP>0</kP>
-      <mQ>0</mQ>
-      <nR>0</nR>
+      <xU>@xU</xU>
+      <yV>@yV</yV>
+      <zW>@zW</zW>
+      <kP>@kP</kP>
+      <mQ>@mQ</mQ>
+      <nR>@nR</nR>
       <!-- Second order stability derivative: -->
       <xUabsU>@xUabsU</xUabsU>
       <yVabsV>@yVabsV</yVabsV>

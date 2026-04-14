@@ -4,20 +4,20 @@
     <pose>0 0 0 0 0 0</pose>
 
     <!-- BlueROV2 thruster reference: http://www.ardusub.com/introduction/features.html -->
-    <!-- fluid_density: 1000 -->
-    <!-- displaced_mass: 10.05 -->
+    <!-- fluid_density: 997.0 -->
+    <!-- displaced_mass: 21.658 -->
 
     <link name="base_link">
       <inertial>
         <pose>0 0 0.011 0 0 0</pose>
-        <mass>10</mass>
+        <mass>21.608</mass>
         <inertia>
-          <ixx>0.09873097998042396</ixx>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyy>0.17756847998042397</iyy>
-          <iyz>0</iyz>
-          <izz>0.2692441666666667</izz>
+          <ixx>0.130189</ixx>
+          <ixy>0.027187</ixy>
+          <ixz>0.047646</ixz>
+          <iyy>6.144</iyy>
+          <iyz>-0.001465</iyz>
+          <izz>6.12</izz>
         </inertia>
       </inertial>
 
@@ -30,12 +30,14 @@
         </geometry>
       </visual>
 
-      <!-- Collision volume * fluid_density == displaced mass, used by BuoyancyPlugin -->
+      <!-- Compact box for buoyancy (gz + terrain contact): long cylinder collision was
+           intersecting the world and freezing the model (no /odom, no JSON to ArduSub).
+           Hydrodynamic *drag* still uses hull cylinder dimensions in generate_model.py. -->
       <collision name="base_link_collision">
         <pose>0 0 0.06 0 0 0</pose>
         <geometry>
           <box>
-            <size>0.457 0.338 0.06506286173008947</size>
+            <size>0.457 0.338 0.1406339874699</size>
           </box>
         </geometry>
       </collision>
@@ -56,28 +58,30 @@
         filename="gz-sim-hydrodynamics-system"
         name="gz::sim::systems::Hydrodynamics">
       <link_name>base_link</link_name>
-      <water_density>1000</water_density>
-      <!-- Added mass: -->
-      <xDotU>0</xDotU>
-      <yDotV>0</yDotV>
-      <zDotW>0</zDotW>
-      <kDotP>0</kDotP>
-      <mDotQ>0</mDotQ>
-      <nDotR>0</nDotR>
+      <water_density>997.0</water_density>
+      <!-- Plugin Ma uses accel estimates; keep disabled unless Ma coeffs stay tiny or use link fluid_added_mass -->
+      <disable_added_mass>true</disable_added_mass>
+      <!-- Added mass coeffs (generate_model.py sets these to 0 while disable_added_mass is true): -->
+      <xDotU>0.0</xDotU>
+      <yDotV>0.0</yDotV>
+      <zDotW>0.0</zDotW>
+      <kDotP>0.0</kDotP>
+      <mDotQ>0.0</mDotQ>
+      <nDotR>0.0</nDotR>
       <!-- First order stability derivative: -->
-      <xU>0</xU>
-      <yV>0</yV>
-      <zW>0</zW>
-      <kP>0</kP>
-      <mQ>0</mQ>
-      <nR>0</nR>
+      <xU>0.0</xU>
+      <yV>0.0</yV>
+      <zW>0.0</zW>
+      <kP>0.0</kP>
+      <mQ>0.0</mQ>
+      <nR>0.0</nR>
       <!-- Second order stability derivative: -->
-      <xUabsU>-33.800000000000004</xUabsU>
-      <yVabsV>-54.26875</yVabsV>
-      <zWabsW>-73.37135</zWabsW>
-      <kPabsP>-4.0</kPabsP>
-      <mQabsQ>-4.0</mQabsQ>
-      <nRabsR>-4.0</nRabsR>
+      <xUabsU>-8.519496621710944</xUabsU>
+      <yVabsV>-93.28729600000001</yVabsV>
+      <zWabsW>-93.28729600000001</zWabsW>
+      <kPabsP>-8.677888000000001</kPabsP>
+      <mQabsQ>-40.113537279999996</mQabsQ>
+      <nRabsR>-40.113537279999996</nRabsR>
     </plugin>
 
     <link name="thruster1">
@@ -272,7 +276,7 @@
       <namespace>orca4</namespace>
       <joint_name>thruster1_joint</joint_name>
       <thrust_coefficient>0.02</thrust_coefficient>
-      <fluid_density>1000</fluid_density>
+      <fluid_density>997.0</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
       <use_angvel_cmd>False</use_angvel_cmd>
@@ -284,7 +288,7 @@
       <namespace>orca4</namespace>
       <joint_name>thruster2_joint</joint_name>
       <thrust_coefficient>0.02</thrust_coefficient>
-      <fluid_density>1000</fluid_density>
+      <fluid_density>997.0</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
       <use_angvel_cmd>False</use_angvel_cmd>
@@ -297,7 +301,7 @@
       <joint_name>thruster3_joint</joint_name>
       <!-- Reverse spin to balance torque -->
       <thrust_coefficient>-0.02</thrust_coefficient>
-      <fluid_density>1000</fluid_density>
+      <fluid_density>997.0</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
       <use_angvel_cmd>False</use_angvel_cmd>
@@ -310,7 +314,7 @@
       <joint_name>thruster4_joint</joint_name>
       <!-- Reverse spin to balance torque -->
       <thrust_coefficient>-0.02</thrust_coefficient>
-      <fluid_density>1000</fluid_density>
+      <fluid_density>997.0</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
       <use_angvel_cmd>False</use_angvel_cmd>
@@ -322,7 +326,7 @@
       <namespace>orca4</namespace>
       <joint_name>thruster5_joint</joint_name>
       <thrust_coefficient>0.02</thrust_coefficient>
-      <fluid_density>1000</fluid_density>
+      <fluid_density>997.0</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
       <use_angvel_cmd>False</use_angvel_cmd>
@@ -335,7 +339,7 @@
       <joint_name>thruster6_joint</joint_name>
       <!-- Reverse spin to balance torque -->
       <thrust_coefficient>-0.02</thrust_coefficient>
-      <fluid_density>1000</fluid_density>
+      <fluid_density>997.0</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
       <use_angvel_cmd>False</use_angvel_cmd>
@@ -346,7 +350,7 @@
       <fdm_addr>127.0.0.1</fdm_addr>
       <fdm_port_in>9002</fdm_port_in>
       <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
-      <lock_step>0</lock_step>
+      <lock_step>1</lock_step>
 
       <!-- Transform from the Gazebo body frame (x-forward, y-left, z-up)
            to the ArduPilot body frame (x-forward, y-right, z-down) -->
