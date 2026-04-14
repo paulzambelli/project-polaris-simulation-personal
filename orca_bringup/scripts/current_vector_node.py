@@ -21,7 +21,7 @@ import random
 class CurrentVector(Node):
 
     def __init__(self):
-        super().__init__('current_vector')
+        super().__init__()
 
         self.declare_parameter('direction', '')
         self.declare_parameter('amplitude', 0.0)
@@ -35,6 +35,7 @@ class CurrentVector(Node):
         timer_period = 0.05
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.start_time = self.get_clock().now()
+        self.last_time = self.start_time
 
         self.noise = {'x': 0.0, 'y': 0.0, 'z': 0.0}
 
