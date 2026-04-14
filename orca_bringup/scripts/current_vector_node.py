@@ -2,8 +2,17 @@
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from geometry_msgs.msg import Vector3
 import math
+
+# Match ros_gz_bridge /ocean_current ROS subscription (transient_local); default
+# rclpy publisher is volatile and will not connect.
+_OCEAN_CURRENT_QOS = QoSProfile(
+    depth=10,
+    reliability=ReliabilityPolicy.RELIABLE,
+    durability=DurabilityPolicy.TRANSIENT_LOCAL,
+)
 import random
 
 # ros2 run orca_bringup current_vector_node.py
@@ -17,21 +26,24 @@ class CurrentVector(Node):
         self.declare_parameter('direction', '')
         self.declare_parameter('amplitude', 0.0)
         self.declare_parameter('period', 0.0)
-        self.declare_parameter('noise_stddev', 0.8)
+        self.declare_parameter('noise_stddev', 0.08)
         self.declare_parameter('noise_time_constant', 1.5)
 
-        self.publisher_ = self.create_publisher(Vector3, '/ocean_current', 10)        
+        self.publisher_ = self.create_publisher(
+            Vector3, '/ocean_current', _OCEAN_CURRENT_QOS)
 
         timer_period = 0.05
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.start_time = self.get_clock().now()
+        self.last_time = self.start_time
 
         self.noise = {'x': 0.0, 'y': 0.0, 'z': 0.0}
 
     def timer_callback(self):
         direction = self.get_parameter('direction').get_parameter_value().string_value
         amplitude = self.get_parameter('amplitude').get_parameter_value().double_value
-        frequency = 1/self.get_parameter('period').get_parameter_value().double_value
+        period = self.get_parameter('period').get_parameter_value().double_value
+        frequency = 1.0 / period if period != 0.0 else 0.0
         noise_stddev = self.get_parameter('noise_stddev').get_parameter_value().double_value
         noise_tau = self.get_parameter('noise_time_constant').get_parameter_value().double_value
 
@@ -44,11 +56,11 @@ class CurrentVector(Node):
         msg.y = 0.0
         msg.z = 0.0
 
-        if direction == 'x':
+        if direction == 'dir_x':
             msg.x = amplitude * math.sin(2*math.pi*frequency*t)
-        elif direction == 'y':
+        elif direction == 'dir_y':
             msg.y = amplitude * math.sin(2*math.pi*frequency*t)
-        elif direction == 'z':
+        elif direction == 'dir_z':
             msg.z = amplitude * math.sin(2*math.pi*frequency*t)
         elif direction == 'xy':
             msg.x = amplitude * math.sin(2*math.pi*frequency*t)
@@ -127,7 +139,7 @@ class CurrentVector(Node):
 
 
         self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: x=%.2f y=%.2f z=%.2f' % (msg.x, msg.y, msg.z))
+        #self.get_logger().info('Publishing: x=%.2f y=%.2f z=%.2f' % (msg.x, msg.y, msg.z))
 
 
 def main(args=None) -> None:
@@ -139,7 +151,8 @@ def main(args=None) -> None:
         pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':
