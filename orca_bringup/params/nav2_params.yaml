@@ -99,17 +99,17 @@ controller_server:
       tick_rate: 20.0
 
       x_vel: 0.5
-      x_accel: 0.3
-      z_vel: 0.3
-      z_accel: 0.2
+      x_accel: 0.2
+      z_vel: 0.1
+      z_accel: 0.1
       yaw_vel: 0.3
-      yaw_accel: 0.15
+      yaw_accel: 0.1
 
       # The motion model may be bogus, so actual velocity may be lower or higher than desired
       # velocity. Specify a range using the error terms, e.g.,
       # [(1 - yaw_error_) * yaw_vel_, (1 + yaw_error_) * yaw_vel_]
-      x_error: 0.3
-      yaw_error: 0.15
+      x_error: 0.35 #0.3
+      yaw_error: 0.2 #0.15
       # Tracking topics: 3x Float64 + PointStamped + PoseStamped + TwistStamped (see README)
       publish_tracking_error: true
 
