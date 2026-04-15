@@ -25,6 +25,7 @@ class CurrentVector(Node):
         timer_period = 0.05
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.start_time = self.get_clock().now()
+        self.last_time = self.start_time
 
         self.noise = {'x': 0.0, 'y': 0.0, 'z': 0.0}
 
