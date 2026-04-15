@@ -97,7 +97,7 @@ Toggle with `publish_tracking_error` in [`params/nav2_params.yaml`](params/nav2_
 
 5. **Find the bag** (created under the directory where you ran `ros2 launch`, usually `~/colcon_ws`):
    ```bash
-   ls -lt (~/colcon_ws)
+   ls -lt (~/colcon_ws) rosbag2_2026_04_15-11_18_20
    ```
    Look for `rosbag2_YYYY_MM_DD-HH_MM_SS` with `metadata.yaml` inside.
 
@@ -111,7 +111,7 @@ Toggle with `publish_tracking_error` in [`params/nav2_params.yaml`](params/nav2_
      -o ~/colcon_ws/exports/my_run
    ```
 
-7. **Exported files** (under `csv_export/` next to the bag, or `-o`):
+**Exported files** (under `csv_export/` next to the bag, or `-o`):
 
    - **`tracking_errors_long.csv`** — all messages: `msg_type` is `float64`, `point`, `pose`, or `twist`; numeric fields in `v0`…`v12` (see `tracking_export_README.txt`).
    - **`tracking_errors_wide.csv`** — one row per cross-track time; columns include the three errors plus closest XYZ, robot position + quaternion, and twist linear/angular (aligned with as-of merge).
