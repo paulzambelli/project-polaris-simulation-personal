@@ -108,8 +108,8 @@ controller_server:
       # The motion model may be bogus, so actual velocity may be lower or higher than desired
       # velocity. Specify a range using the error terms, e.g.,
       # [(1 - yaw_error_) * yaw_vel_, (1 + yaw_error_) * yaw_vel_]
-      x_error: 0.35 #0.3
-      yaw_error: 0.2 #0.15
+      x_error: 0.30 #0.3, 0.35
+      yaw_error: 0.15 #0.15, 0.2
       # Tracking topics: 3x Float64 + PointStamped + PoseStamped + TwistStamped (see README)
       publish_tracking_error: true
 
