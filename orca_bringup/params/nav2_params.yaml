@@ -93,7 +93,7 @@ controller_server:
     # Controller parameters
     LongStraightLine:
       plugin: "orca_nav2/PurePursuitController3D"
-      lookahead_dist: 2.0
+      lookahead_dist: 2.5
       transform_tolerance: 1.0
       goal_tolerance: 0.4 # 0.4? but we are doing a very long strate! pay attention goal stioll needs to be reached!!¨!!!!!!!!!!!!!!!!!
       tick_rate: 20.0
