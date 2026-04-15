@@ -97,7 +97,7 @@ Toggle with `publish_tracking_error` in [`params/nav2_params.yaml`](params/nav2_
 
 5. **Find the bag** (created under the directory where you ran `ros2 launch`, usually `~/colcon_ws`):
    ```bash
-   ls -lt (~/colcon_ws) rosbag2_2026_04_15-11_18_20
+   ls -lt (~/colcon_ws)
    ```
    Look for `rosbag2_YYYY_MM_DD-HH_MM_SS` with `metadata.yaml` inside.
 
