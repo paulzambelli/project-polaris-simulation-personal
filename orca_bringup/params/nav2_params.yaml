@@ -93,17 +93,17 @@ controller_server:
     # Controller parameters
     LongStraightLine:
       plugin: "orca_nav2/PurePursuitController3D"
-      lookahead_dist: 1.0 # 0.6 max_dist lAD * 1.5
+      lookahead_dist: 2.0
       transform_tolerance: 1.0
       goal_tolerance: 0.4 # 0.4? but we are doing a very long strate! pay attention goal stioll needs to be reached!!¨!!!!!!!!!!!!!!!!!
       tick_rate: 20.0
 
-      x_vel: 0.4
-      x_accel: 0.4
+      x_vel: 0.5
+      x_accel: 0.3
       z_vel: 0.3
-      z_accel: 0.3
-      yaw_vel: 0.45
-      yaw_accel: 0.2
+      z_accel: 0.2
+      yaw_vel: 0.3
+      yaw_accel: 0.15
 
       # The motion model may be bogus, so actual velocity may be lower or higher than desired
       # velocity. Specify a range using the error terms, e.g.,
