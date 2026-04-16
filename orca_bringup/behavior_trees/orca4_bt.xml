@@ -79,7 +79,7 @@
 
           <Fallback>
             <Sequence>
-              <IsSteepSlopeCheck path="{path}" min_slope="2" release_slope="0.5"/>
+              <IsSteepSlopeCheck path="{path}" min_slope="1.0" release_slope="0.2"/>
               <FollowPath path="{path}" controller_id="SteepSlope" goal_checker_id="goal_checker"/>
             </Sequence>
             <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>
