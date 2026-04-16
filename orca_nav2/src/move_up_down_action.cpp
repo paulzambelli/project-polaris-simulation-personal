@@ -100,7 +100,7 @@ void MoveUpDownAction::halt()
     timing_ = false;
   }
 
-  BT::ActionNodeBase::halt();
+  setStatus(BT::NodeStatus::IDLE);
 }
 
 }  // namespace orca_nav2

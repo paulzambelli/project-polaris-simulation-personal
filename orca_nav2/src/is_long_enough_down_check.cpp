@@ -22,7 +22,7 @@ public:
   static BT::PortsList providedPorts()
   {
     return {
-      BT::InputPort<double>("min_time", "{ascend_duration}", "Minimum time to go down [s]."),
+      BT::InputPort<double>("min_time", "Minimum time to go down [s]."),
     };
   }
 
@@ -50,10 +50,12 @@ BT::NodeStatus IsLongEnoughDown::tick()
 {
   double min_time;
 
-  // Here better to have the default as FAILURE, so that if the topic is not available
-  // to robot will dive down
+  // If min_time is not wired in the XML, fall back to the blackboard key 'ascend_duration'.
+  // If neither is available, return FAILURE so the robot keeps going down.
   if (!getInput("min_time", min_time)) {
-    return BT::NodeStatus::FAILURE;
+    if (!config().blackboard->get<double>("ascend_duration", min_time)) {
+      return BT::NodeStatus::FAILURE;
+    }
   }
 
   if (!timing_) {

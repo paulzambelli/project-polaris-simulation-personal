@@ -54,7 +54,7 @@ IsCloseToIce::IsCloseToIce(
   }
   
   subscription_ = node->create_subscription<std_msgs::msg::Float32>(
-    '/top/ultrasonic/distance',
+    "/top/ultrasonic/distance",
     rclcpp::SensorDataQoS(),
     std::bind(&IsCloseToIce::distanceToIceCallback, this, _1)
   );

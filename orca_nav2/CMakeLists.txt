@@ -46,6 +46,8 @@ set(_orca_nav2_bt_plugin_deps
   nav2_behavior_tree
   nav2_util
   rclcpp
+  sensor_msgs
+  std_msgs
 )
 
 
@@ -66,7 +68,7 @@ target_compile_definitions(is_sharp_turn_check PRIVATE BT_PLUGIN_EXPORT)
 # --- Is close to ice check ---
 ament_auto_add_library(is_close_to_ice_check SHARED src/is_close_to_ice_check.cpp)
 target_include_directories(is_close_to_ice_check PRIVATE include)
-ament_target_dependencies(is_close_to_ice_check ${_orca_nav2_bt_plugin_deps} std_msgs)
+ament_target_dependencies(is_close_to_ice_check ${_orca_nav2_bt_plugin_deps})
 target_link_libraries(is_close_to_ice_check) # Can be deleted?!
 target_compile_definitions(is_close_to_ice_check PRIVATE BT_PLUGIN_EXPORT)
 
@@ -80,7 +82,7 @@ target_compile_definitions(is_ice_measurement_stop_check PRIVATE BT_PLUGIN_EXPOR
 # --- Is GPS fixed check ---
 ament_auto_add_library(is_gps_fix_good_check SHARED src/is_gps_fix_good_check.cpp)
 target_include_directories(is_gps_fix_good_check PRIVATE include)
-ament_target_dependencies(is_gps_fix_good_check ${_orca_nav2_bt_plugin_deps} sensor_msgs)
+ament_target_dependencies(is_gps_fix_good_check ${_orca_nav2_bt_plugin_deps})
 target_link_libraries(is_gps_fix_good_check) # Can be deleted?!
 target_compile_definitions(is_gps_fix_good_check PRIVATE BT_PLUGIN_EXPORT)
 
