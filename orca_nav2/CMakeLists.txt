@@ -65,6 +65,13 @@ ament_target_dependencies(is_sharp_turn_check ${_orca_nav2_bt_plugin_deps})
 target_link_libraries(is_sharp_turn_check orca_nav2_path_tracking_utils)
 target_compile_definitions(is_sharp_turn_check PRIVATE BT_PLUGIN_EXPORT)
 
+# --- Is Steep Slope check ---
+ament_auto_add_library(is_steep_slope_check SHARED src/is_steep_slope_check.cpp)
+target_include_directories(is_steep_slope_check PRIVATE include)
+ament_target_dependencies(is_steep_slope_check ${_orca_nav2_bt_plugin_deps})
+target_link_libraries(is_steep_slope_check) # Can be deleted?!
+target_compile_definitions(is_steep_slope_check PRIVATE BT_PLUGIN_EXPORT)
+
 # --- Is close to ice check ---
 ament_auto_add_library(is_close_to_ice_check SHARED src/is_close_to_ice_check.cpp)
 target_include_directories(is_close_to_ice_check PRIVATE include)
@@ -108,15 +115,16 @@ target_link_libraries(store_active_goal_action) # Can be deleted?!
 target_compile_definitions(store_active_goal_action PRIVATE BT_PLUGIN_EXPORT)
 
 
-# --- Controller (both Nav2 controller plugins live in one shared library; see orca_controllers_plugins.xml)
-ament_auto_add_library(pure_pursuit_controller_3d SHARED
+# --- Controller (all three Nav2 controller plugins live in one shared library; see orca_controllers_plugins.xml)
+ament_auto_add_library(orca_controllers SHARED
   src/pure_pursuit_controller_3d.cpp
   src/sharp_turn_controller3D.cpp
+  src/steep_descent_controller_3d.cpp
 )
-target_include_directories(pure_pursuit_controller_3d PRIVATE include)
-ament_target_dependencies(pure_pursuit_controller_3d
+target_include_directories(orca_controllers PRIVATE include)
+ament_target_dependencies(orca_controllers
   angles nav2_util nav2_core nav2_costmap_2d rclcpp rclcpp_lifecycle tf2 tf2_ros tf2_geometry_msgs geometry_msgs std_msgs nav_msgs)
-target_compile_definitions(pure_pursuit_controller_3d PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
+target_compile_definitions(orca_controllers PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 pluginlib_export_plugin_description_file(nav2_core orca_controllers_plugins.xml)
 
 
