@@ -29,7 +29,7 @@
 </root>-->
 
 <!-- Behaviour tree 2: TEST FIRST!!!!!!!!!!!!!!! -->
-<root main_tree_to_execute="MainTree">
+<!-- <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
 
     <Sequence name="One Leg of Mission">
@@ -53,10 +53,10 @@
 
     </Sequence>
   </BehaviorTree>
-</root>
+</root> -->
 
 
-<!-- Fianl GoUp tree:
+<!-- Fianl GoUp tree: -->
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <Sequence name="One Leg of Mission">
@@ -67,7 +67,7 @@
 
         <PipelineSequence name="NavigateWithReplanning">
 
-          <RateController hz="1.0">
+          <RateController hz="0.5">
             <ComputePathToPose goal="{active_goal}" path="{path}" planner_id="StraightLine"/>
           </RateController>
 
@@ -91,17 +91,20 @@
               <MoveUpDownAction speed="0.05" elapsed_time="{ascend_duration}"/>
             </ReactiveFallback>
 
-            <Timeout msec="60000">
-              <Sequence>
-                <Wait wait_duration="10.0"/>
-                <RetryUntilSuccessful num_attempts="-1">
-                  <Sequence>
-                    <IsGPSFixGood max_xy_accuracy="2.0"/>
-                    <Wait wait_duration="1.0"/>
-                  </Sequence>
-                </RetryUntilSuccessful>
-              </Sequence>
-            </Timeout>
+            <Fallback name="GPSOrSkip">
+              <Timeout msec="10000">
+                <Sequence>
+                  <Wait wait_duration="5.0"/>
+                  <RetryUntilSuccessful num_attempts="-1">
+                    <Sequence>
+                      <IsGPSFixGood max_xy_accuracy="2.0"/>
+                      <Wait wait_duration="1.0"/>
+                    </Sequence>
+                  </RetryUntilSuccessful>
+                </Sequence>
+              </Timeout>
+              <AlwaysSuccess/>
+            </Fallback>
 
             <ReactiveFallback name="Descend a little bit">
               <IsLongEnoughDown min_time="{ascend_duration}"/>
@@ -115,7 +118,7 @@
 
     </Sequence>
   </BehaviorTree>
-</root> -->
+</root>
 
 
 
