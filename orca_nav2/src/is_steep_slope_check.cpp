@@ -30,8 +30,9 @@ public:
     {
         return {
             BT::InputPort<nav_msgs::msg::Path>("path", "Path to Check"),
-            BT::InputPort<double>("min_slope", "Slope to trigger the Yes SteepLine"),
-            BT::InputPort<double>("release_slope", "Slope to release the SteepLine"),
+            BT::InputPort<double>("min_slope", 0.7, "Slope to trigger the Yes SteepLine"),
+            BT::InputPort<double>("release_slope", 0.15, "Slope to release the SteepLine"),
+            BT::InputPort<double>("max_xy_distance", 7.0, "Minimum horizontal distance to goal."),
         };
     }
 
@@ -58,12 +59,13 @@ BT::NodeStatus IsSteepSlopeCheck::tick()
 
     double min_slope;
     double release_slope;
+    double max_xy_distance;
     double transform_tolerance = 1.0;
 
     auto logger = rclcpp::get_logger("bt_is_steep_line");
 
     if (!getInput("path", path) || !getInput("min_slope", min_slope) ||
-        !getInput("release_slope", release_slope))
+        !getInput("release_slope", release_slope) || !getInput("max_xy_distance", max_xy_distance))
     {
         RCLCPP_WARN_THROTTLE(
             logger, g_log_throttle_clock, 5000,
@@ -111,11 +113,11 @@ BT::NodeStatus IsSteepSlopeCheck::tick()
     // To ENTER steep mode, the slope must be HIGHER than min_slope (e.g., > 3.0)
     // To EXIT steep mode, the slope must drop BELOW release_slope (e.g., < 2.0)
     if (!is_replaning_) {
-        if (current_slope > min_slope) {
+        if (current_slope > min_slope && dxy < max_xy_distance ) {
             is_replaning_ = true;
         }
     } else {
-        if (current_slope < release_slope) {
+        if (current_slope < release_slope || dxy > max_xy_distance) {
             is_replaning_ = false;
         }
     }
