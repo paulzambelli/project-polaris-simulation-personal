@@ -64,7 +64,7 @@ bt_navigator:
       - is_sharp_turn_check
       - is_close_to_ice_check
       - is_ice_measurement_stop_check
-      - is_gps_fix_good_check
+      - is_gps_fix_good_action
       #- is_long_enough_down_check
       - is_steep_slope_check
       - move_up_down_action

@@ -114,6 +114,13 @@ ament_target_dependencies(store_active_goal_action ${_orca_nav2_bt_plugin_deps})
 target_link_libraries(store_active_goal_action) # Can be deleted?!
 target_compile_definitions(store_active_goal_action PRIVATE BT_PLUGIN_EXPORT)
 
+# --- Is GPS fixed Action ---
+ament_auto_add_library(is_gps_fix_good_action SHARED src/is_gps_fix_good_action.cpp)
+target_include_directories(is_gps_fix_good_action PRIVATE include)
+ament_target_dependencies(is_gps_fix_good_action ${_orca_nav2_bt_plugin_deps})
+target_link_libraries(is_gps_fix_good_action) # Can be deleted?!
+target_compile_definitions(is_gps_fix_good_action PRIVATE BT_PLUGIN_EXPORT)
+
 
 # --- Controller (all three Nav2 controller plugins live in one shared library; see orca_controllers_plugins.xml)
 ament_auto_add_library(orca_controllers SHARED
