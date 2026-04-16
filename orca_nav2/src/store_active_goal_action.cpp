@@ -16,7 +16,10 @@ public:
   {
     return {
       BT::InputPort<geometry_msgs::msg::PoseStamped>("input_goal"),
-      BT::OutputPort<geometry_msgs::msg::PoseStamped>("stored_goal")
+      BT::OutputPort<geometry_msgs::msg::PoseStamped>("stored_goal"),
+      BT::OutputPort<bool>(
+        "ice_measurement_stop",
+        "True when input_goal.header.frame_id is map_ice_measurement (CSV up_down)."),
     };
   }
 
@@ -36,8 +39,9 @@ BT::NodeStatus StoreActiveGoal::tick()
   if (!getInput("input_goal", goal)) {
     return BT::NodeStatus::FAILURE;
   }
-  // "Pin" the data to the new key
+  const bool ice_measurement = (goal.header.frame_id == "map_ice_measurement");
   setOutput("stored_goal", goal);
+  setOutput("ice_measurement_stop", ice_measurement);
   return BT::NodeStatus::SUCCESS;
 }
 

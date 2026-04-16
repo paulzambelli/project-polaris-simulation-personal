@@ -38,6 +38,7 @@ this script arms explicitly for the bridge + Nav2 path.
 """
 
 from enum import Enum
+from typing import Optional
 import time
 
 import rclpy
@@ -88,6 +89,16 @@ for _ in range(2):
     delay_loop.poses.append(make_pose(x=0.0, y=0.0, z=-7.0))
 
 
+def _spin_future(executor, future, timeout_sec: Optional[float] = None) -> bool:
+    """Spin the executor until ``future`` completes (or ``timeout_sec`` elapses). Returns ``future.done()``."""
+    deadline = (time.time() + timeout_sec) if timeout_sec is not None else None
+    while rclpy.ok() and not future.done():
+        if deadline is not None and time.time() >= deadline:
+            return future.done()
+        executor.spin_once(timeout_sec=0.05)
+    return future.done()
+
+
 def wait_for_follow_waypoints(executor, action_client, timeout_sec: float = 300.0) -> bool:
     """
     rclpy's ActionClient.wait_for_server() only sleeps; it never spins the node, so discovery
@@ -118,6 +129,7 @@ def wait_for_follow_waypoints(executor, action_client, timeout_sec: float = 300.
 # Cancel the goal if the user hits ^C (KeyboardInterrupt).
 def send_goal(executor, action_client, send_goal_msg) -> SendGoalResult:
     goal_handle = None
+    result_future = None
 
     try:
         if not wait_for_follow_waypoints(executor, action_client):
@@ -125,8 +137,7 @@ def send_goal(executor, action_client, send_goal_msg) -> SendGoalResult:
 
         print('Sending goal...')
         goal_future = action_client.send_goal_async(send_goal_msg)
-        executor.spin_until_future_complete(goal_future, timeout_sec=120.0)
-        if not goal_future.done():
+        if not _spin_future(executor, goal_future, timeout_sec=120.0):
             print('Timeout waiting for goal acceptance from Nav2.')
             return SendGoalResult.FAILURE
         goal_handle = goal_future.result()
@@ -140,9 +151,8 @@ def send_goal(executor, action_client, send_goal_msg) -> SendGoalResult:
 
         print('Goal accepted with ID: {}'.format(bytes(goal_handle.goal_id.uuid).hex()))
         result_future = goal_handle.get_result_async()
-        executor.spin_until_future_complete(result_future)
-
-        result = result_future.result()
+        _spin_future(executor, result_future, timeout_sec=None)
+        result = result_future.result() if result_future.done() else None
 
         if result is None:
             raise RuntimeError('Exception while getting result: {!r}'.format(result_future.exception()))
@@ -159,25 +169,30 @@ def send_goal(executor, action_client, send_goal_msg) -> SendGoalResult:
                 GoalStatus.STATUS_EXECUTING == goal_handle.status):
             print('Canceling goal...')
             cancel_future = goal_handle.cancel_goal_async()
-            executor.spin_until_future_complete(cancel_future)
-            cancel_response = cancel_future.result()
+            if not _spin_future(executor, cancel_future, timeout_sec=30.0):
+                print('Warning: cancel request did not complete within 30s.')
+            cancel_response = cancel_future.result() if cancel_future.done() else None
 
             if cancel_response is None:
-                exc = cancel_future.exception()
+                exc = cancel_future.exception() if cancel_future.done() else None
                 if exc is not None:
                     raise RuntimeError('Exception while canceling goal: {!r}'.format(exc)) from exc
                 # Context shutting down (e.g. Ctrl+C) can complete the future with no response.
                 print('Cancel finished without response (shutdown?)')
-                return SendGoalResult.CANCELED
-
-            if len(cancel_response.goals_canceling) == 0:
+            elif len(cancel_response.goals_canceling) == 0:
                 raise RuntimeError('Failed to cancel goal')
-            if len(cancel_response.goals_canceling) > 1:
+            elif len(cancel_response.goals_canceling) > 1:
                 raise RuntimeError('More than one goal canceled')
-            if cancel_response.goals_canceling[0].goal_id != goal_handle.goal_id:
+            elif cancel_response.goals_canceling[0].goal_id != goal_handle.goal_id:
                 raise RuntimeError('Canceled goal with incorrect goal ID')
+            else:
+                print('Goal canceled')
 
-            print('Goal canceled')
+            if result_future is not None and not result_future.done():
+                print('Waiting for Nav2 cancel result...')
+                if not _spin_future(executor, result_future, timeout_sec=60.0):
+                    print('Warning: no action result after cancel within 60s.')
+
             return SendGoalResult.CANCELED
         raise
 

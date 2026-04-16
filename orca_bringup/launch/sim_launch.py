@@ -223,14 +223,6 @@ def generate_launch_description():
             condition=UnlessCondition(LaunchConfiguration('base')),
         ),
 
-        # Sim-only stand-in for /top/ultrasonic/distance (see orca_nav2 IsCloseToIce).
-        Node(
-            package='orca_bringup',
-            executable='simulate_distance_sensor.py',
-            parameters=[{'use_sim_time': use_sim_time}],
-            output='screen',
-        ),
-
         # Delay bringup so /clock and /tf exist before lifecycle_manager autostart. Otherwise
         # behavior_server can fail configure while controller/planner already sit in inactive.
         TimerAction(
@@ -245,6 +237,7 @@ def generate_launch_description():
                         'nav': LaunchConfiguration('nav'),
                         'use_sim_time': use_sim_time,
                         'orca_params_file': orca_params_file,
+                        'simulate_top_ultrasonic': 'True',
                     }.items(),
                 ),
             ],

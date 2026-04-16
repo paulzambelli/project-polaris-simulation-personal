@@ -8,7 +8,7 @@ bt_navigator:
     transform_tolerance: 1.0
     odom_topic: "/odom"
     bt_loop_duration: 10
-    default_server_timeout: 20
+    default_server_timeout: 200000
     default_nav_to_pose_bt_xml: "bringup.py should replace me"
 
     # Keep in sync with ros-humble-nav2-bringup nav2_params.yaml plugin_lib_names, plus Orca BT nodes.
@@ -65,7 +65,8 @@ bt_navigator:
       - is_close_to_ice_check
       - is_ice_measurement_stop_check
       - is_gps_fix_good_check
-      - is_long_enough_down_check
+      #- is_long_enough_down_check
+      - is_steep_slope_check
       - move_up_down_action
       - store_active_goal_action
 
@@ -82,8 +83,8 @@ controller_server:
     min_y_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
     progress_checker_plugins: ["progress_checker"]
-    goal_checker_plugins: ["goal_checker"] # also here different checker?
-    controller_plugins: ["LongStraightLine", "SharpTurn"]
+    goal_checker_plugins: ["goal_checker"]
+    controller_plugins: ["LongStraightLine", "SharpTurn", "SteepSlope"]
 
     # Progress checker parameters
     progress_checker:
@@ -106,11 +107,11 @@ controller_server:
       tick_rate: 20.0
 
       x_vel: 0.3
-      x_accel: 0.4
+      x_accel: 0.15
       z_vel: 0.1
       z_accel: 0.1
       yaw_vel: 0.25
-      yaw_accel: 0.5
+      yaw_accel: 0.1
 
       # The motion model may be bogus, so actual velocity may be lower or higher than desired
       # velocity. Specify a range using the error terms, e.g.,
@@ -139,6 +140,15 @@ controller_server:
       # x_error: 0.5
       # yaw_error: 0.6
       # Tracking topics: 3x Float64 + PointStamped + PoseStamped + TwistStamped (see README)
+      publish_tracking_error: true
+
+    SteepSlope:
+      plugin: "orca_nav2/SteepDescentController3D"
+      z_vel: 0.1
+      z_accel: 0.1
+      goal_tolerance: 0.2
+      tick_rate: 20.0
+      transform_tolerance: 1.0
       publish_tracking_error: true
 
 controller_server_rclcpp_node:
@@ -235,7 +245,7 @@ robot_state_publisher:
 waypoint_follower:
   ros__parameters:
     use_sim_time: True
-    loop_rate: 20
+    loop_rate: 10
     stop_on_failure: False
     waypoint_task_executor_plugin: "wait_at_waypoint"
     wait_at_waypoint:

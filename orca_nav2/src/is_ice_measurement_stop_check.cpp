@@ -20,6 +20,9 @@ public:
   {
     return {
       BT::InputPort<geometry_msgs::msg::PoseStamped>("goal", "Current waypoint goal to check for the map_ice_station flag."),
+      BT::InputPort<bool>(
+        "ice_measurement_stop", false,
+        "From StoreActiveGoal when waypoint was marked ice (CSV up_down); survives if frame_id is rewritten."),
     };
   }
 
@@ -37,12 +40,14 @@ IsIceMeasurementStop::IsIceMeasurementStop(
 
 BT::NodeStatus IsIceMeasurementStop::tick()
 {
-  geometry_msgs::msg::PoseStamped goal;
+  bool ice_from_store = false;
+  getInput("ice_measurement_stop", ice_from_store);
 
+  geometry_msgs::msg::PoseStamped goal;
   if (!getInput("goal", goal)) {
     return BT::NodeStatus::FAILURE;
   }
-  if (goal.header.frame_id == "map_ice_measurement") {
+  if (ice_from_store || goal.header.frame_id == "map_ice_measurement") {
     return BT::NodeStatus::SUCCESS;
   }
 

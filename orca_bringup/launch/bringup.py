@@ -98,6 +98,15 @@ def generate_launch_description():
             description='Full path to the ROS2 parameters file to use for Orca nodes',
         ),
 
+        DeclareLaunchArgument(
+            'simulate_top_ultrasonic',
+            default_value='True',
+            description=(
+                'If true, run simulate_distance_sensor.py (std_msgs/Float32 on /top/ultrasonic/distance). '
+                'Set false when real hardware publishes that topic.'
+            ),
+        ),
+
         # Launch custom MAVLink bridge for Pixhawk communications.
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(mavlink_bridge_dir, 'launch', 'mavlink_bridge.launch.py')),
@@ -129,6 +138,16 @@ def generate_launch_description():
             # X Y Z Yaw Pitch Roll Parent_Frame Child_Frame
             arguments=['0', '0', '0', '0', '0', '0', 'map', 'map_ice_measurement'],
             output='screen'
+        ),
+
+        # Sim (or bench) stand-in for top rangefinder — orca_nav2 IsCloseToIce and related BT logic.
+        Node(
+            package='orca_bringup',
+            executable='simulate_distance_sensor.py',
+            name='distance_simulator',
+            parameters=[{'use_sim_time': use_sim_time}],
+            output='screen',
+            condition=IfCondition(LaunchConfiguration('simulate_top_ultrasonic')),
         ),
 
         IncludeLaunchDescription(

@@ -3,7 +3,6 @@
 #include <memory>
 #include <stdexcept>
 
-
 #include "behaviortree_cpp_v3/bt_factory.h"
 #include "behaviortree_cpp_v3/condition_node.h"
 #include "rclcpp/rclcpp.hpp"
@@ -48,13 +47,17 @@ IsLongEnoughDown::IsLongEnoughDown(
 
 BT::NodeStatus IsLongEnoughDown::tick()
 {
-  double min_time;
+  // Same Nav2 BT client-node story as IsCloseToIce: pump so sim /clock advances for node_->now().
+  rclcpp::spin_some(node_);
 
-  // If min_time is not wired in the XML, fall back to the blackboard key 'ascend_duration'.
-  // If neither is available, return FAILURE so the robot keeps going down.
-  if (!getInput("min_time", min_time)) {
-    if (!config().blackboard->get<double>("ascend_duration", min_time)) {
-      return BT::NodeStatus::FAILURE;
+  double min_time = 0.0;
+  // ReactiveFallback ticks this node before MoveUpDown. If min_time is 0 (unset ascend_duration or
+  // ascent halt wrote 0 s), the first tick would succeed immediately and the descend action never runs.
+  constexpr double kMinValid = 1e-3;
+  constexpr double kDefaultSeconds = 5.0;
+  if (!getInput("min_time", min_time) || min_time < kMinValid) {
+    if (!config().blackboard->get<double>("ascend_duration", min_time) || min_time < kMinValid) {
+      min_time = kDefaultSeconds;
     }
   }
 

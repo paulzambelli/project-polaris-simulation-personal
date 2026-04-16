@@ -33,7 +33,7 @@
   <BehaviorTree ID="MainTree">
 
     <Sequence name="One Leg of Mission">
-      <StoreActiveGoal input_goal="{goal}" stored_goal="{active_goal}"/>
+      <StoreActiveGoal input_goal="{goal}" stored_goal="{active_goal}" ice_measurement_stop="{ice_measurement_stop}"/>
 
       <RecoveryNode number_of_retries="10" name="NavigateRecovery">
         
@@ -43,7 +43,13 @@
               <ComputePathToPose goal="{active_goal}" path="{path}" planner_id="StraightLine"/>
           </RateController>
           
-          <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>
+          <Fallback>
+            <Sequence>
+              <IsSteepSlopeCheck path="{path}" min_slope="5" release_slope="0.5"/>
+              <FollowPath path="{path}" controller_id="SteepSlope" goal_checker_id="goal_checker"/>
+            </Sequence>
+            <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>
+          </Fallback>
         
         </PipelineSequence>
         
@@ -61,7 +67,7 @@
   <BehaviorTree ID="MainTree">
     <Sequence name="One Leg of Mission">
 
-      <StoreActiveGoal input_goal="{goal}" stored_goal="{active_goal}"/>
+      <StoreActiveGoal input_goal="{goal}" stored_goal="{active_goal}" ice_measurement_stop="{ice_measurement_stop}"/>
 
       <RecoveryNode number_of_retries="10" name="NavigateRecovery">
 
@@ -71,45 +77,44 @@
             <ComputePathToPose goal="{active_goal}" path="{path}" planner_id="StraightLine"/>
           </RateController>
 
-          <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>
+          <Fallback>
+            <Sequence>
+              <IsSteepSlopeCheck path="{path}" min_slope="2" release_slope="0.5"/>
+              <FollowPath path="{path}" controller_id="SteepSlope" goal_checker_id="goal_checker"/>
+            </Sequence>
+            <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>
+          </Fallback>
 
         </PipelineSequence>
 
-        <!-- No GoalUpdated: mission uses strict sequential waypoints; new goals cancel/restart the
-             tree. Recovery only waits and retries {active_goal}. -->
         <Wait wait_duration="2.0"/>
 
       </RecoveryNode>
 
       <Fallback name="IceStationProcessGate">
         <Sequence name="IceStationExecution">
-          <IsIceMeasurementStop goal="{active_goal}"/>
+          <IsIceMeasurementStop goal="{active_goal}" ice_measurement_stop="{ice_measurement_stop}"/>
 
           <Sequence name="IceMeasurementSequence">
-            <ReactiveFallback name="Ascend to Ice">
+
+            <!-- Ascend until touching ice; on halt writes ascent duration to blackboard "ascend_duration" -->
+            <ReactiveFallback name="Ascend_Until_Ice">
               <IsCloseToIce max_dist_to_ice="0.3"/>
-              <MoveUpDownAction speed="0.05" elapsed_time="{ascend_duration}"/>
+              <MoveUpDownAction speed="0.05"/>
             </ReactiveFallback>
 
             <Fallback name="GPSOrSkip">
               <Timeout msec="10000">
                 <Sequence>
-                  <Wait wait_duration="5.0"/>
-                  <RetryUntilSuccessful num_attempts="-1">
-                    <Sequence>
-                      <IsGPSFixGood max_xy_accuracy="2.0"/>
-                      <Wait wait_duration="1.0"/>
-                    </Sequence>
-                  </RetryUntilSuccessful>
+                  <Wait wait_duration="2.0"/>
+                  <IsGPSFixGood max_xy_accuracy="2.0"/>
                 </Sequence>
               </Timeout>
               <AlwaysSuccess/>
             </Fallback>
 
-            <ReactiveFallback name="Descend a little bit">
-              <IsLongEnoughDown min_time="{ascend_duration}"/>
-              <MoveUpDownAction speed="-0.05"/>
-            </ReactiveFallback>
+            <MoveUpDownAction speed="-0.05" elapsed_time="{ascend_duration}"/>
+
           </Sequence>
         </Sequence>
 

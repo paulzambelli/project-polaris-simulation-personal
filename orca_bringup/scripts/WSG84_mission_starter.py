@@ -7,6 +7,7 @@ Override: ``--origin=lat,lon,alt`` and/or ``--file path.csv``.
 """
 
 from enum import Enum
+from typing import Optional
 import argparse
 import json
 import sys
@@ -96,6 +97,16 @@ def parse_origin(s: str) -> tuple:
     return float(parts[0]), float(parts[1]), float(parts[2])
 
 
+def _spin_future(executor, future, timeout_sec: Optional[float] = None) -> bool:
+    """Spin the executor until ``future`` completes (or ``timeout_sec`` elapses). Returns ``future.done()``."""
+    deadline = (time.time() + timeout_sec) if timeout_sec is not None else None
+    while rclpy.ok() and not future.done():
+        if deadline is not None and time.time() >= deadline:
+            return future.done()
+        executor.spin_once(timeout_sec=0.05)
+    return future.done()
+
+
 def wait_for_follow_waypoints(executor, action_client, timeout_sec: float = 300.0) -> bool:
     start = time.time()
     print('Waiting for Nav2 /follow_waypoints action server...')
@@ -115,14 +126,14 @@ def wait_for_follow_waypoints(executor, action_client, timeout_sec: float = 300.
 
 def send_goal(executor, action_client, send_goal_msg, node, mode_pub, arm_pub) -> SendGoalResult:
     goal_handle = None
+    result_future = None
     try:
         if not wait_for_follow_waypoints(executor, action_client):
             return SendGoalResult.FAILURE
 
         print('Sending goal...')
         goal_future = action_client.send_goal_async(send_goal_msg)
-        executor.spin_until_future_complete(goal_future, timeout_sec=120.0)
-        if not goal_future.done():
+        if not _spin_future(executor, goal_future, timeout_sec=120.0):
             print('Timeout waiting for goal acceptance from Nav2.')
             return SendGoalResult.FAILURE
         goal_handle = goal_future.result()
@@ -136,15 +147,22 @@ def send_goal(executor, action_client, send_goal_msg, node, mode_pub, arm_pub) -
 
         print('Goal accepted with ID: {}'.format(bytes(goal_handle.goal_id.uuid).hex()))
         result_future = goal_handle.get_result_async()
-        executor.spin_until_future_complete(result_future)
+        # Short spin_once slices so Ctrl+C can preempt quickly (spin_until_future_complete blocks badly).
+        _spin_future(executor, result_future, timeout_sec=None)
+        result_response = result_future.result() if result_future.done() else None
 
-        result = result_future.result()
-
-        if result is None:
+        if result_response is None:
             raise RuntimeError('Exception while getting result: {!r}'.format(result_future.exception()))
 
-        print('Goal completed')
-        return SendGoalResult.SUCCESS
+        status = result_response.status
+        if status == GoalStatus.STATUS_SUCCEEDED:
+            print('Follow waypoints finished: SUCCEEDED')
+            return SendGoalResult.SUCCESS
+        if status == GoalStatus.STATUS_CANCELED:
+            print('Follow waypoints finished: CANCELED')
+            return SendGoalResult.CANCELED
+        print(f'Follow waypoints finished: status={status} (not succeeded).')
+        return SendGoalResult.FAILURE
 
     except KeyboardInterrupt:
         if goal_handle is None:
@@ -158,11 +176,12 @@ def send_goal(executor, action_client, send_goal_msg, node, mode_pub, arm_pub) -
 
             print('Canceling goal...')
             cancel_future = goal_handle.cancel_goal_async()
-            executor.spin_until_future_complete(cancel_future)
-            cancel_response = cancel_future.result()
+            if not _spin_future(executor, cancel_future, timeout_sec=30.0):
+                print('Warning: cancel request did not complete within 30s.')
+            cancel_response = cancel_future.result() if cancel_future.done() else None
 
             if cancel_response is None:
-                exc = cancel_future.exception()
+                exc = cancel_future.exception() if cancel_future.done() else None
                 if exc is not None:
                     raise RuntimeError('Exception while canceling goal: {!r}'.format(exc)) from exc
                 print('Cancel finished without response (shutdown?)')
@@ -175,6 +194,16 @@ def send_goal(executor, action_client, send_goal_msg, node, mode_pub, arm_pub) -
                 raise RuntimeError('Canceled goal with incorrect goal ID')
             else:
                 print('Goal canceled')
+
+            # Let Nav2 finish the action protocol (avoids stuck server-side state).
+            if result_future is not None and not result_future.done():
+                print('Waiting for Nav2 cancel result...')
+                if not _spin_future(executor, result_future, timeout_sec=60.0):
+                    print('Warning: no action result after cancel within 60s.')
+                elif result_future.done():
+                    rr = result_future.result()
+                    if rr is not None:
+                        print(f'Follow waypoints finished after cancel: status={rr.status}')
 
             publish_manual_and_spin(executor, node, mode_pub, spins=15)
 
