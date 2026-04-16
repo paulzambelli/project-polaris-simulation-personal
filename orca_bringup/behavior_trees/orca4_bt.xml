@@ -28,8 +28,8 @@
   </BehaviorTree>
 </root>-->
 
-
-<!-- Behaviour tree 2: TEST FIRST!!!!!!!!!!!!!!! <root main_tree_to_execute="MainTree">
+<!-- Behaviour tree 2: TEST FIRST!!!!!!!!!!!!!!! -->
+<root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
 
     <Sequence name="One Leg of Mission">
@@ -53,10 +53,10 @@
 
     </Sequence>
   </BehaviorTree>
-</root>-->
+</root>
 
 
-
+<!-- Fianl GoUp tree:
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <Sequence name="One Leg of Mission">
@@ -115,7 +115,7 @@
 
     </Sequence>
   </BehaviorTree>
-</root>
+</root> -->
 
 
 

@@ -94,29 +94,29 @@ controller_server:
     # Goal checker parameters
     goal_checker:
       plugin: "orca_nav2/GoalChecker3D"
-      xy_goal_tolerance: 0.8
-      z_goal_tolerance: 0.5
+      xy_goal_tolerance: 0.3
+      z_goal_tolerance: 0.2
 
     # Controller parameters
     LongStraightLine:
       plugin: "orca_nav2/PurePursuitController3D"
-      lookahead_dist: 1.0
+      lookahead_dist: 2.0
       transform_tolerance: 1.0
       goal_tolerance: 0.2
       tick_rate: 20.0
 
-      x_vel: 0.4
+      x_vel: 0.3
       x_accel: 0.4
-      z_vel: 0.3
-      z_accel: 0.3
+      z_vel: 0.1
+      z_accel: 0.1
       yaw_vel: 0.25
       yaw_accel: 0.5
 
       # The motion model may be bogus, so actual velocity may be lower or higher than desired
       # velocity. Specify a range using the error terms, e.g.,
       # [(1 - yaw_error_) * yaw_vel_, (1 + yaw_error_) * yaw_vel_]
-      x_error: 0.5
-      yaw_error: 0.6
+      x_error: 0.3
+      yaw_error: 0.15
       # Tracking topics: 3x Float64 + PointStamped + PoseStamped + TwistStamped (see README)
       publish_tracking_error: true
 

@@ -1,6 +1,6 @@
 ## Start simulation (for rosbag see below)
 ```bash
-ros2 launch orca_bringup sim_launch.py (bag:=True)
+ros2 launch orca_bringup sim_launch.py
 ```
 
 ## Start mission
