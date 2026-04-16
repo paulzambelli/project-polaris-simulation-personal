@@ -100,7 +100,7 @@
             <!-- Ascend until touching ice; on halt writes ascent duration to blackboard "ascend_duration" -->
             <ReactiveFallback name="Ascend_Until_Ice">
               <IsCloseToIce max_dist_to_ice="0.3"/>
-              <MoveUpDownAction speed="0.05"/>
+              <MoveUpDownAction speed="0.1"/>
             </ReactiveFallback>
 
             <Fallback name="GPSOrSkip">
@@ -113,7 +113,7 @@
               <AlwaysSuccess/>
             </Fallback>
 
-            <MoveUpDownAction speed="-0.05" elapsed_time="{ascend_duration}"/>
+            <MoveUpDownAction speed="-0.1" elapsed_time="{ascend_duration}"/>
 
           </Sequence>
         </Sequence>
