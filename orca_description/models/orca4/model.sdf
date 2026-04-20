@@ -5,19 +5,19 @@
 
     <!-- BlueROV2 thruster reference: http://www.ardusub.com/introduction/features.html -->
     <!-- fluid_density: 997.0 -->
-    <!-- displaced_mass: 21.658 -->
+    <!-- displaced_mass: 32.461999999999996 -->
 
     <link name="base_link">
       <inertial>
         <pose>0 0 0.011 0 0 0</pose>
-        <mass>21.608</mass>
+        <mass>32.412</mass>
         <inertia>
-          <ixx>0.130189</ixx>
-          <ixy>0.027187</ixy>
-          <ixz>0.047646</ixz>
-          <iyy>6.144</iyy>
-          <iyz>-0.001465</iyz>
-          <izz>6.12</izz>
+          <ixx>0.195</ixx>
+          <ixy>0.041</ixy>
+          <ixz>0.071</ixz>
+          <iyy>11.51</iyy>
+          <iyz>0.0</iyz>
+          <izz>11.475</izz>
         </inertia>
       </inertial>
 
@@ -37,7 +37,7 @@
         <pose>0 0 0.06 0 0 0</pose>
         <geometry>
           <box>
-            <size>0.457 0.338 0.1406339874699</size>
+            <size>0.457 0.338 0.21078864628533997</size>
           </box>
         </geometry>
       </collision>
@@ -61,8 +61,8 @@
       <water_density>997.0</water_density>
       <!-- Added mass: small coeffs in generate_model.py (large Ma + finite-diff accel is unstable). -->
       <xDotU>0.67</xDotU>
-      <yDotV>3.2412</yDotV>
-      <zDotW>3.2412</zDotW>
+      <yDotV>4.8618</yDotV>
+      <zDotW>4.8618</zDotW>
       <kDotP>0.08</kDotP>
       <mDotQ>1.5</mDotQ>
       <nDotR>1.5</nDotR>
@@ -74,12 +74,12 @@
       <mQ>0.0</mQ>
       <nR>0.0</nR>
       <!-- Second order stability derivative: -->
-      <xUabsU>-8.519496621710944</xUabsU>
-      <yVabsV>-93.28729600000001</yVabsV>
-      <zWabsW>-93.28729600000001</zWabsW>
-      <kPabsP>-8.677888000000001</kPabsP>
-      <mQabsQ>-40.113537279999996</mQabsQ>
-      <nRabsR>-40.113537279999996</nRabsR>
+      <xUabsU>-29.95135531070254</xUabsU>
+      <yVabsV>-174.91368000000003</yVabsV>
+      <zWabsW>-174.91368000000003</zWabsW>
+      <kPabsP>-30.508200000000006</kPabsP>
+      <mQabsQ>-75.2128824</mQabsQ>
+      <nRabsR>-75.2128824</nRabsR>
     </plugin>
 
     <link name="thruster1">

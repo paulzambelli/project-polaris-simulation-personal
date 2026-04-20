@@ -49,13 +49,13 @@ d45 = d90 / 2
 d135 = d90 + d45
 
 # --- Rigid body (CAD / spreadsheet), body frame at base_link ---
-mass = 21.608
-ixx = 0.130189
-ixy = 0.027187
-ixz = 0.047646
-iyy = 6.144000
-iyz = -0.001465
-izz = 6.120000
+mass = 32.412
+ixx = 0.195
+ixy = 0.041
+ixz = 0.071
+iyy = 11.51 # should be 9.216 but multiplied again by 1.5
+iyz = 0.0
+izz = 11.475 # should be 9.18 but multiplied again by 1.5
 
 # Center of mass / buoyancy reference (no new COM data with inertia sheet)
 mass_z = 0.011
@@ -78,7 +78,7 @@ collision_z = displaced_mass / (collision_x * collision_y * fluid_density)
 
 # --- Hydrodynamic *drag*: slender hull cylinder (areas only; not the buoyancy collision shape) ---
 hull_length = 1.72
-hull_radius = 0.08
+hull_radius = 0.15 # 0.08
 cd_axial = 0.85
 cd_cross = 0.68
 _area_axial = math.pi * hull_radius**2
