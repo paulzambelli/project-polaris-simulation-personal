@@ -4,7 +4,9 @@ from rclpy.qos import qos_profile_sensor_data
 import logging
 import os
 import time
+import json
 from datetime import datetime
+from ament_index_python.packages import get_package_share_directory
 
 os.environ["MAVLINK20"] = "1"
 from pymavlink import mavutil
@@ -133,9 +135,18 @@ class MavlinkBridgeReceiver(Node):
             Bool, "/pixhawk/arm_cmd", self.arm_disarm_cb, SUB_QOS_DEPTH
         )
 
+        self._gps_origin_sent = False
+        self.set_origin_from_json(
+            os.path.join(
+                get_package_share_directory('orca_bringup'),
+                'missions',
+                'default_mission_origin.json',
+            )
+        )
+
         # For sending Odometry
         self.declare_parameter("enable_external_odom", False)
-        self.declare_parameter("external_odom_max_rate_hz", 200.0) # previously 50 Hz
+        self.declare_parameter("external_odom_max_rate_hz", 30.0) # previously 50 Hz
         self.declare_parameter("external_odom_quality", 100)
 
         self._external_odom_last_send_ns = 0
@@ -446,6 +457,56 @@ class MavlinkBridgeReceiver(Node):
             int(pitch),  # s (Extension 1)
             int(roll),  # t (Extension 2)
         )
+
+    def set_origin_from_json(self, json_path: str = 'default_mission_origin.json'):
+        """
+        Loads the GPS origin from a JSON file and sends it to the FCU.
+        This anchors the EKF so GUIDED and POSHOLD modes can function.
+        """
+        try:
+            with open(json_path, 'r') as f:
+                origin_data = json.load(f)
+            
+            # Extract coordinates (update the keys if your JSON uses 'latitude' instead of 'lat')
+            lat = origin_data.get('lat', 46.494536)
+            lon = origin_data.get('lon', 9.856195)
+            alt = origin_data.get('alt', 1822.0)
+
+            # MAVLink requires timestamps in microseconds
+            time_usec = int(time.time() * 1e6)
+
+            # Send the global origin
+            self.port.mav.set_gps_global_origin_send(
+                self.port.target_system,
+                int(lat * 1e7),
+                int(lon * 1e7),
+                int(alt * 1e3),
+                time_usec,
+            )
+
+            # Optional but highly recommended: Send HOME position too
+            # This makes the "H" icon appear correctly in QGroundControl
+            self.port.mav.set_home_position_send(
+                self.port.target_system,
+                int(lat * 1e7),
+                int(lon * 1e7),
+                int(alt * 1e3),
+                0.0, 0.0, 0.0,         # x, y, z local NED (unknown)
+                [1.0, 0.0, 0.0, 0.0],  # quaternion
+                0.0, 0.0, 0.0,         # approach_x, approach_y, approach_z
+            )
+
+            self._gps_origin_sent = True
+            self.get_logger().info(
+                f"JSON GPS Origin sent: lat={lat:.7f}, lon={lon:.7f}, alt={alt:.2f}m"
+            )
+            self._file_logger.info(
+                f"JSON GPS Origin sent: lat={lat:.7f}, lon={lon:.7f}, alt={alt:.2f}m"
+            )
+
+        except Exception as e:
+            self.get_logger().error(f"Failed to load GPS origin from {json_path}: {e}")
+            self._file_logger.error(f"Failed to load GPS origin from {json_path}: {e}")
 
     """--------------------------------------------- main function ---------------------------------------------"""
 

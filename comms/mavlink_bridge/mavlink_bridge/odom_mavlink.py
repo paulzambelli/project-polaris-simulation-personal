@@ -93,55 +93,49 @@ def ros_odom_to_mavlink_odometry(
     twist_linear_flu: Tuple[float, float, float],
     twist_angular_flu: Tuple[float, float, float],
 ) -> Tuple[
-    float,
-    float,
-    float,
+    float, float, float,
     Tuple[float, float, float, float],
     Tuple[float, float, float],
     Tuple[float, float, float],
 ]:
     """
-    Returns:
-      position (x,y,z) in MAV_FRAME_LOCAL_FRD (m),
-      quaternion (w,x,y,z) LOCAL_FRD <- BODY_FRD,
-      linear velocity (vx,vy,vz) in BODY_FRD (m/s),
-      angular velocity (roll,pitch,yaw rates rad/s) in BODY_FRD.
+    Clean Quaternion-based translation from ROS (ENU/FLU) to MAVLink (NED/FRD).
     """
-    pn = pos_enu_y
-    pe = pos_enu_x
-    pd = -pos_enu_z
+    # 1. Position: ENU -> NED
+    x_ned = pos_enu_y
+    y_ned = pos_enu_x
+    z_ned = -pos_enu_z
 
-    R_enu_from_flu = _quat_to_R(orient_flu_in_enu)
-    R_ned_from_frd = _matmul(_matmul(_R_ned_from_enu, R_enu_from_flu), _R_flu_from_frd)
+    # 2. Orientation: ENU/FLU -> NED/FRD
+    _s = math.sqrt(0.5)
+    w2 = orient_flu_in_enu.w
+    x2 = orient_flu_in_enu.x
+    y2 = orient_flu_in_enu.y
+    z2 = orient_flu_in_enu.z
+    
+    # Step 1: q_tmp = q_ENU_to_NED ⊗ q_ros
+    w1, x1, y1, z1 = 0.0, _s, _s, 0.0
+    wt = w1*w2 - x1*x2 - y1*y2 - z1*z2
+    xt = w1*x2 + x1*w2 + y1*z2 - z1*y2
+    yt = w1*y2 - x1*z2 + y1*w2 + z1*x2
+    zt = w1*z2 + x1*y2 - y1*x2 + z1*w2
+    
+    # Step 2: q_mav = q_tmp ⊗ q_FLU_to_FRD (0, 1, 0, 0)
+    q_frd = (-xt, wt, zt, -yt)
 
-    yaw_ned = math.atan2(R_ned_from_frd[1][0], R_ned_from_frd[0][0])
-    cp = math.cos(yaw_ned)
-    sp = math.sin(yaw_ned)
-    R_ned_from_lfrd = [[cp, -sp, 0.0], [sp, cp, 0.0], [0.0, 0.0, 1.0]]
-    R_lfrd_from_ned = _transpose(R_ned_from_lfrd)
+    # 3. Linear Velocity: body FLU -> body FRD
+    vx_frd = twist_linear_flu[0]
+    vy_frd = -twist_linear_flu[1]
+    vz_frd = -twist_linear_flu[2]
 
-    x_lfrd = pn * cp + pe * sp
-    y_lfrd = -pn * sp + pe * cp
-    z_lfrd = pd
-
-    R_lfrd_from_frd = _matmul(R_lfrd_from_ned, R_ned_from_frd)
-    wq, xq, yq, zq = _R_to_quat_wxyz(R_lfrd_from_frd)
-
-    lx, ly, lz = twist_linear_flu
-    vx_frd = lx
-    vy_frd = -ly
-    vz_frd = -lz
-
-    wx, wy, wz = twist_angular_flu
-    rollspeed = wx
-    pitchspeed = -wy
-    yawspeed = -wz
+    # 4. Angular Velocity: body FLU -> body FRD
+    rollspeed = twist_angular_flu[0]
+    pitchspeed = -twist_angular_flu[1]
+    yawspeed = -twist_angular_flu[2]
 
     return (
-        float(x_lfrd),
-        float(y_lfrd),
-        float(z_lfrd),
-        (float(wq), float(xq), float(yq), float(zq)),
+        float(x_ned), float(y_ned), float(z_ned),
+        q_frd,
         (float(vx_frd), float(vy_frd), float(vz_frd)),
         (float(rollspeed), float(pitchspeed), float(yawspeed)),
     )
