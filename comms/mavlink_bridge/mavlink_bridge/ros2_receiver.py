@@ -494,6 +494,7 @@ class MavlinkBridgeReceiver(Node):
                 0.0, 0.0, 0.0,         # x, y, z local NED (unknown)
                 [1.0, 0.0, 0.0, 0.0],  # quaternion
                 0.0, 0.0, 0.0,         # approach_x, approach_y, approach_z
+                time_usec,
             )
 
             self._gps_origin_sent = True
