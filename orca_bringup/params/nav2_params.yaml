@@ -102,7 +102,7 @@ controller_server:
       x_accel: 0.15
       z_vel: 0.2
       z_accel: 0.15
-      yaw_vel: 0.2
+      yaw_vel: 0.35
       yaw_accel: 0.15
 
       # The motion model may be bogus, so actual velocity may be lower or higher than desired
