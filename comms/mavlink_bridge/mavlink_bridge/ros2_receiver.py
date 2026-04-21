@@ -7,6 +7,7 @@ import time
 import json
 from datetime import datetime
 from ament_index_python.packages import get_package_share_directory
+import math
 
 os.environ["MAVLINK20"] = "1"
 from pymavlink import mavutil
@@ -53,7 +54,7 @@ class MavlinkBridgeReceiver(Node):
         self._file_logger = logging.getLogger("ros2_receiver")
 
         # set level defines from what message type onwards the message is logged. the different levels are:
-        # Logging levels (lowest → highest):
+        # Logging levels (lowest Ã¢â€ â€™ highest):
         # DEBUG    = detailed diagnostic data (high-frequency sensor + internal state)
         # INFO     = normal operational messages (mode changes, summaries)
         # WARNING  = unexpected situations that do not stop operation
@@ -144,9 +145,18 @@ class MavlinkBridgeReceiver(Node):
             )
         )
 
+        self._gps_origin_sent = False
+        self.set_origin_from_json(
+            os.path.join(
+                get_package_share_directory('orca_bringup'),
+                'missions',
+                'default_mission_origin.json',
+            )
+        )
+
         # For sending Odometry
         self.declare_parameter("enable_external_odom", False)
-        self.declare_parameter("external_odom_max_rate_hz", 30.0) # previously 50 Hz
+        self.declare_parameter("external_odom_max_rate_hz", 26.0) # previously 50 Hz
         self.declare_parameter("external_odom_quality", 100)
 
         self._external_odom_last_send_ns = 0
@@ -238,7 +248,7 @@ class MavlinkBridgeReceiver(Node):
         yaw_rate = -float(msg.angular.z)
 
         # 2. Type mask (ArduSub GCS_MAVLink_Sub.cpp): vel_ignore is true if ANY of
-        # MAVLINK_SET_POS_TYPE_MASK_VEL_IGNORE bits (vx,vy,vz) are set — so we must not
+        # MAVLINK_SET_POS_TYPE_MASK_VEL_IGNORE bits (vx,vy,vz) are set Ã¢â‚¬â€ so we must not
         # set VY_IGNORE when commanding vx,vz; otherwise guided_set_velocity() is skipped.
         m = mavutil.mavlink
         type_mask = (
@@ -341,7 +351,12 @@ class MavlinkBridgeReceiver(Node):
     # Currently sending position, velocity, attitude, rates. Later then seperated and different frequencies.
     def external_odom_cb(self, msg):
         """Stream nav_msgs/Odometry to FCU as MAVLink ODOMETRY (ArduPilot external nav)."""
+        try:
+            self._external_odom_cb_impl(msg)
+        except Exception as e:
+            self.get_logger().error(f"external_odom_cb failed: {e}", throttle_duration_sec=5.0)
 
+    def _external_odom_cb_impl(self, msg):
         now_ns = self.get_clock().now().nanoseconds
         max_hz = self.get_parameter("external_odom_max_rate_hz").get_parameter_value().double_value
         if max_hz > 0.0:
@@ -350,46 +365,78 @@ class MavlinkBridgeReceiver(Node):
                 return
         self._external_odom_last_send_ns = now_ns
 
-        p = msg.pose.pose.position
-        oq = msg.pose.pose.orientation
-        tw = msg.twist.twist
-        x, y, z, quat, vel, rates = ros_odom_to_mavlink_odometry(
-            float(p.x),
-            float(p.y),
-            float(p.z),
-            oq,
-            (
-                float(tw.linear.x),
-                float(tw.linear.y),
-                float(tw.linear.z),
-            ),
-            (
-                float(tw.angular.x),
-                float(tw.angular.y),
-                float(tw.angular.z),
-            ),
-        )
+        # Timestamp from message header in microseconds
+        time_usec = (msg.header.stamp.sec * 10**9 + msg.header.stamp.nanosec) // 1000
 
-        stamp = msg.header.stamp
-        time_usec = int(stamp.sec * 1_000_000 + stamp.nanosec // 1000)
+        # Raw Position: ENU -> NED
+        nx =  msg.pose.pose.position.y
+        ny =  msg.pose.pose.position.x
+        nz = -msg.pose.pose.position.z
+
+        # Raw Orientation: ENU/FLU -> NED/FRD
+        _s = math.sqrt(0.5)
+        w2 = msg.pose.pose.orientation.w
+        x2 = msg.pose.pose.orientation.x
+        y2 = msg.pose.pose.orientation.y
+        z2 = msg.pose.pose.orientation.z
+        
+        # Step 1: q_tmp = q_ENU_to_NED ⊗ q_ros_flu
+        w1, x1, y1, z1 = 0.0, _s, _s, 0.0
+        wt = w1*w2 - x1*x2 - y1*y2 - z1*z2
+        xt = w1*x2 + x1*w2 + y1*z2 - z1*y2
+        yt = w1*y2 - x1*z2 + y1*w2 + z1*x2
+        zt = w1*z2 + x1*y2 - y1*x2 + z1*w2
+        
+        # Step 2: q_ned_frd = q_tmp ⊗ (0, 1, 0, 0)
+        qw = -xt
+        qx =  wt
+        qy =  zt
+        qz = -yt
+
+        # Step 3: Extract ONLY the Yaw component from the NED quaternion
+        yaw = math.atan2(2.0 * (qw*qz + qx*qy), 1.0 - 2.0 * (qy*qy + qz*qz))
+
+        # Step 4: Rotate the Position into the FRD frame (strip the yaw)
+        cos_y = math.cos(yaw)
+        sin_y = math.sin(yaw)
+        x_lfrd =  nx * cos_y + ny * sin_y
+        y_lfrd = -nx * sin_y + ny * cos_y
+        z_lfrd =  nz
+
+        # Step 5: Create a 'Zero-Yaw' version of the orientation (strip the yaw)
+        half_yaw = -yaw / 2.0
+        cp = math.cos(half_yaw)
+        sp = math.sin(half_yaw)
+        
+        q_frd = [
+            cp*qw - sp*qz,
+            cp*qx - sp*qy,
+            cp*qy + sp*qx,
+            cp*qz + sp*qw
+        ]
+
+        # Linear velocity: body FLU -> body FRD
+        vx =  msg.twist.twist.linear.x
+        vy = -msg.twist.twist.linear.y
+        vz = -msg.twist.twist.linear.z
+
+        # Angular rates: body FLU -> body FRD
+        rollspeed  =  msg.twist.twist.angular.x
+        pitchspeed = -msg.twist.twist.angular.y
+        yawspeed   = -msg.twist.twist.angular.z
+
         qual = self.get_parameter("external_odom_quality").get_parameter_value().integer_value
         qual = max(-1, min(100, int(qual)))
 
         m = mavutil.mavlink
         self.port.mav.odometry_send(
             time_usec,
-            m.MAV_FRAME_LOCAL_FRD,
+            m.MAV_FRAME_LOCAL_FRD,  # Back to LOCAL_FRD for the EKF bypass
             m.MAV_FRAME_BODY_FRD,
-            x,
-            y,
-            z,
-            list(quat),
-            vel[0],
-            vel[1],
-            vel[2],
-            rates[0],
-            rates[1],
-            rates[2],
+            x_lfrd, y_lfrd, z_lfrd, # Send the yaw-stripped position
+            q_frd,                  # Send the yaw-stripped orientation
+            vx, vy, vz,
+            rollspeed, pitchspeed, yawspeed,
             nan_pose_covariance(),
             nan_velocity_covariance(),
             0,
@@ -457,6 +504,57 @@ class MavlinkBridgeReceiver(Node):
             int(pitch),  # s (Extension 1)
             int(roll),  # t (Extension 2)
         )
+
+    def set_origin_from_json(self, json_path: str = 'default_mission_origin.json'):
+        """
+        Loads the GPS origin from a JSON file and sends it to the FCU.
+        This anchors the EKF so GUIDED and POSHOLD modes can function.
+        """
+        try:
+            with open(json_path, 'r') as f:
+                origin_data = json.load(f)
+            
+            # Extract coordinates (update the keys if your JSON uses 'latitude' instead of 'lat')
+            lat = origin_data.get('lat', 46.494536)
+            lon = origin_data.get('lon', 9.856195)
+            alt = origin_data.get('alt', 1822.0)
+
+            # MAVLink requires timestamps in microseconds
+            time_usec = int(time.time() * 1e6)
+
+            # Send the global origin
+            self.port.mav.set_gps_global_origin_send(
+                self.port.target_system,
+                int(lat * 1e7),
+                int(lon * 1e7),
+                int(alt * 1e3),
+                time_usec,
+            )
+
+            # Optional but highly recommended: Send HOME position too
+            # This makes the "H" icon appear correctly in QGroundControl
+            self.port.mav.set_home_position_send(
+                self.port.target_system,
+                int(lat * 1e7),
+                int(lon * 1e7),
+                int(alt * 1e3),
+                0.0, 0.0, 0.0,         # x, y, z local NED (unknown)
+                [1.0, 0.0, 0.0, 0.0],  # quaternion
+                0.0, 0.0, 0.0,         # approach_x, approach_y, approach_z
+                time_usec,
+            )
+
+            self._gps_origin_sent = True
+            self.get_logger().info(
+                f"JSON GPS Origin sent: lat={lat:.7f}, lon={lon:.7f}, alt={alt:.2f}m"
+            )
+            self._file_logger.info(
+                f"JSON GPS Origin sent: lat={lat:.7f}, lon={lon:.7f}, alt={alt:.2f}m"
+            )
+
+        except Exception as e:
+            self.get_logger().error(f"Failed to load GPS origin from {json_path}: {e}")
+            self._file_logger.error(f"Failed to load GPS origin from {json_path}: {e}")
 
     def set_origin_from_json(self, json_path: str = 'default_mission_origin.json'):
         """
