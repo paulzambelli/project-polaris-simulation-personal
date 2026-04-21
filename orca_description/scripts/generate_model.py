@@ -48,39 +48,73 @@ d90 = d180 / 2
 d45 = d90 / 2
 d135 = d90 + d45
 
-mass = 10
+# --- Rigid body (CAD / spreadsheet), body frame at base_link ---
+mass = 32.412
+ixx = 0.195
+ixy = 0.041
+ixz = 0.071
+iyy = 11.51 # should be 9.216 but multiplied again by 1.5
+iyz = 0.0
+izz = 11.475 # should be 9.18 but multiplied again by 1.5
+
+# Center of mass / buoyancy reference (no new COM data with inertia sheet)
+mass_z = 0.011
+volume_z = 0.06
+
+# Water density for HydrodynamicsPlugin, ThrusterPlugin, and displaced-mass comment
+fluid_density = 997.0
+
+# Visual mesh extent (display only)
 visual_x = 0.457
 visual_y = 0.338
 visual_z = 0.25
-fluid_density = 1000
 
-# The ROV should be positively buoyant
+# --- Buoyancy: small box (stable with gz buoyancy + heightmap); slightly positively buoyant ---
 buoyancy_adjustment = 0.05
 displaced_mass = mass + buoyancy_adjustment
+collision_x = 0.457
+collision_y = 0.338
+collision_z = displaced_mass / (collision_x * collision_y * fluid_density)
 
-# The collision box is used by the BuoyancyPlugin
-# collision_x * collision_y * collision_z * density == displaced_mass
-collision_x = visual_x
-collision_y = visual_y
-collision_z = displaced_mass / (visual_x * visual_y * fluid_density)
+# --- Hydrodynamic *drag*: slender hull cylinder (areas only; not the buoyancy collision shape) ---
+hull_length = 1.72
+hull_radius = 0.15 # 0.08
+cd_axial = 0.85
+cd_cross = 0.68
+_area_axial = math.pi * hull_radius**2
+_area_cross = 2.0 * hull_radius * hull_length
 
-# The center of mass is just above the origin
-mass_z = 0.011
+# Added mass (xDotU = X_u_dot, ...): gz applies F ≈ -Ma * Δv/Δt — keep well below dry mass on
+# translational diagonals to avoid DART startup spikes. Full vehicle sheet had Y_v_dot ~ 34 kg;
+# we use modest fractions here; raise slowly if the sim stays stable.
+_added_mass_surge = 0.67
+_added_mass_sway_heave = 0.15 * mass  # ~3.24 kg
+_added_mass_roll = 0.08
+_added_mass_pitch_yaw = 1.5
+xDotU = _added_mass_surge
+yDotV = _added_mass_sway_heave
+zDotW = _added_mass_sway_heave
+kDotP = _added_mass_roll
+mDotQ = _added_mass_pitch_yaw
+nDotR = _added_mass_pitch_yaw
 
-# The center of volume is directly above the center of mass, resulting in a restoring force
-volume_z = 0.06
+# Linear damping (not provided on sheet; keep zero)
+xU = 0.0
+yV = 0.0
+zW = 0.0
+kP = 0.0
+mQ = 0.0
+nR = 0.0
 
-ixx = mass / 12 * (collision_y * collision_y + collision_z * collision_z)
-iyy = mass / 12 * (collision_x * collision_x + collision_z * collision_z)
-izz = mass / 12 * (collision_x * collision_x + collision_y * collision_y)
-
-# 2nd order stability for the HydrodynamicsPlugin
-xUabsU = -0.5 * visual_y * visual_z * 0.8 * fluid_density
-yVabsV = -0.5 * visual_x * visual_z * 0.95 * fluid_density
-zWabsW = -0.5 * visual_x * visual_y * 0.95 * fluid_density
-kPabsP = -0.5 * 0.008 * fluid_density
-mQabsQ = -0.5 * 0.008 * fluid_density
-nRabsR = -0.5 * 0.008 * fluid_density
+# Quadratic damping: slender cylinder, F = 0.5 * rho * Cd * A * |v| * v (plugin uses coeffs
+# on u|u|, etc.; signs negative for dissipative force, matching gz Orca4 convention).
+xUabsU = -0.5 * fluid_density * cd_axial * _area_axial
+yVabsV = -0.5 * fluid_density * cd_cross * _area_cross
+zWabsW = yVabsV
+# Roll: scale from lateral drag × (diameter / length); pitch/yaw moment from cross-flow on body
+kPabsP = yVabsV * (2.0 * hull_radius / hull_length)
+mQabsQ = -0.25 * fluid_density * cd_cross * hull_radius * hull_length**2
+nRabsR = mQabsQ
 
 # Thruster placement
 thruster_x = 0.14
