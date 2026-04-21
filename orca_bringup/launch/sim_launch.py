@@ -139,6 +139,7 @@ def generate_launch_description():
                 ExecuteProcess(
                     cmd=[
                         'ros2', 'topic', 'pub', '--once',
+                        '--qos-durability', 'transient_local',
                         '/ocean_current', 'geometry_msgs/msg/Vector3',
                         '{x: 0.0, y: 0.0, z: 0.0}',
                     ],
@@ -202,7 +203,7 @@ def generate_launch_description():
             arguments=[
                 '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
                 '/model/orca4/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
-                '/ocean_current@geometry_msgs/msg/Vector3]gz.msgs.Vector3d', # TODO: perhaps use Vector3D
+                '/ocean_current@geometry_msgs/msg/Vector3]gz.msgs.Vector3d',
             ],
             remappings=[
                 ('/model/orca4/odometry', '/odom'),
