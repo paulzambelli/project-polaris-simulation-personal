@@ -113,14 +113,21 @@ def wait_for_follow_waypoints(executor, action_client, timeout_sec: float = 300.
     return False
 
 
-def send_goal(executor, action_client, send_goal_msg, node, mode_pub, arm_pub) -> SendGoalResult:
+def send_goal(executor, action_client, send_goal_msg, node, mode_pub, arm_pub,
+              status_pub=None, total_waypoints: int = 0) -> SendGoalResult:
     goal_handle = None
+
+    def feedback_cb(feedback_msg):
+        wp = feedback_msg.feedback.current_waypoint
+        if status_pub is not None:
+            status_pub.publish(String(data=f"{wp + 1}/{total_waypoints}"))
+
     try:
         if not wait_for_follow_waypoints(executor, action_client):
             return SendGoalResult.FAILURE
 
         print('Sending goal...')
-        goal_future = action_client.send_goal_async(send_goal_msg)
+        goal_future = action_client.send_goal_async(send_goal_msg, feedback_callback=feedback_cb)
         executor.spin_until_future_complete(goal_future, timeout_sec=120.0)
         if not goal_future.done():
             print('Timeout waiting for goal acceptance from Nav2.')
@@ -249,6 +256,7 @@ def main() -> None:
         follow_waypoints = ActionClient(node, FollowWaypoints, '/follow_waypoints')
         mode_pub = node.create_publisher(String, '/pixhawk/mode_cmd', 10)
         arm_pub = node.create_publisher(Bool, '/pixhawk/arm_cmd', 10)
+        status_pub = node.create_publisher(String, '/mission_status', 10)
 
         hb_state = PixhawkState()
         node.create_subscription(
@@ -280,7 +288,8 @@ def main() -> None:
             sys.exit(1)
 
         print('>>> Executing mission <<<')
-        mission_result = send_goal(executor, follow_waypoints, goal, node, mode_pub, arm_pub)
+        mission_result = send_goal(executor, follow_waypoints, goal, node, mode_pub, arm_pub,
+                                   status_pub=status_pub, total_waypoints=len(goal.poses))
 
         if mission_result == SendGoalResult.SUCCESS and rclpy.ok():
             print('>>> Disarming <<<')
