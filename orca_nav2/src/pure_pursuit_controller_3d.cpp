@@ -60,12 +60,13 @@ namespace orca_nav2
   {
     double max_a_{};
     double max_dv_{};
+    double k_decelerate_{};
 
   public:
     Limiter() = default;
 
-    Limiter(const double &max_a, const double &dt)
-        : max_a_{max_a}, max_dv_{max_a * dt}
+    Limiter(const double &max_a, const double &dt, const double &k_decelerate)
+        : max_a_{max_a}, max_dv_{max_a * dt}, k_decelerate_{k_decelerate}
     {
       assert(max_a > 0);
       assert(dt > 0);
@@ -77,8 +78,9 @@ namespace orca_nav2
     void decelerate(double &v, const double &goal_dist) const
     {
       assert(v * goal_dist >= 0);
-      auto decel_v = std::sqrt(2 * std::abs(goal_dist) * max_a_);
-      auto result_v = std::min(std::abs(v), decel_v);
+      auto soft_v = std::abs(goal_dist) * k_decelerate_;
+      auto physical_v = std::sqrt(2 * std::abs(goal_dist) * max_a_);
+      auto result_v = std::min({std::abs(v), soft_v, physical_v});
       v = std::copysign(result_v, v);
     }
 
@@ -114,6 +116,7 @@ namespace orca_nav2
     double transform_tolerance_{};
     double goal_tolerance_{}; // Stop motion when we're very close to the goal
     double tick_rate_{};      // Tick rate, used to compute dt
+    double K_descelerate_{};
 
     Limiter x_limiter_;
     Limiter z_limiter_;
@@ -456,6 +459,7 @@ namespace orca_nav2
       PARAMETER(parent, name, K_cross_vel, 0.0)
       PARAMETER(parent, name, max_velocity_divergence_rad, 0.0)
       PARAMETER(parent, name, min_speed_divergence_check, 0.02)
+      PARAMETER(parent, name, K_descelerate, 0.2)
 
       clock_ = parent->get_clock();
 
@@ -480,9 +484,9 @@ namespace orca_nav2
           "pure_pursuit_robot_twist", rclcpp::QoS(10));
       }
 
-      x_limiter_ = Limiter(x_accel_, 1. / tick_rate_);
-      z_limiter_ = Limiter(z_accel_, 1. / tick_rate_);
-      yaw_limiter_ = Limiter(yaw_accel_, 1. / tick_rate_);
+      x_limiter_ = Limiter(x_accel_, 1. / tick_rate_, K_descelerate_);
+      z_limiter_ = Limiter(z_accel_, 1. / tick_rate_, K_descelerate_);
+      yaw_limiter_ = Limiter(yaw_accel_, 1. / tick_rate_, K_descelerate_);
 
       transform_tolerance_d_ = rclcpp::Duration::from_seconds(transform_tolerance_);
 
