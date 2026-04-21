@@ -125,6 +125,8 @@ def generate_launch_description():
                 '/ocean_current',
             ],
             output='screen',
+            sigterm_timeout='10',
+            sigkill_timeout='5',
             condition=IfCondition(LaunchConfiguration('bag')),
         ),
 
@@ -151,6 +153,8 @@ def generate_launch_description():
         ExecuteProcess(
             cmd=['rviz2', '-d', rviz_file],
             output='screen',
+            sigterm_timeout='5',
+            sigkill_timeout='5',
             condition=IfCondition(LaunchConfiguration('rviz')),
         ),
 
@@ -164,6 +168,8 @@ def generate_launch_description():
                 '-I0', '--home', ardusub_home,
             ],
             output='screen',
+            sigterm_timeout='15',
+            sigkill_timeout='5',
             condition=IfCondition(LaunchConfiguration('ardusub')),
         ),
 
@@ -173,6 +179,8 @@ def generate_launch_description():
         ExecuteProcess(
             cmd=['gz', 'sim', '-v', '3', '-r', world_file],
             output='screen',
+            sigterm_timeout='15',
+            sigkill_timeout='5',
             condition=IfCondition(LaunchConfiguration('gzclient')),
         ),
 
@@ -180,6 +188,8 @@ def generate_launch_description():
         ExecuteProcess(
             cmd=['gz', 'sim', '-v', '3', '-r', '-s', world_file],
             output='screen',
+            sigterm_timeout='15',
+            sigkill_timeout='5',
             condition=UnlessCondition(LaunchConfiguration('gzclient')),
         ),
 
