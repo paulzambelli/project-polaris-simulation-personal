@@ -665,6 +665,7 @@ namespace orca_nav2
       if (robot_twist_pub_) { robot_twist_pub_->on_deactivate(); }
       if (arm_cmd_pub_) { arm_cmd_pub_->on_deactivate(); }
       if (mode_cmd_pub_) { mode_cmd_pub_->on_deactivate(); }
+      prev_vel_ = geometry_msgs::msg::Twist{};
     }
 
     // Pose is base_f_odom (3D), Twist comes from /odom but is stripped to 2D
@@ -774,6 +775,7 @@ namespace orca_nav2
       plan_ = plan;
       has_reached_xy_tolerance_ = false;
       is_rotating_to_path_ = false;
+      prev_vel_ = geometry_msgs::msg::Twist{};
     }
 
     void setSpeedLimit(const double &, const bool &) override
