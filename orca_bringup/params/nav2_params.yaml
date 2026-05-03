@@ -94,6 +94,7 @@ controller_server:
     LongStraightLine:
       plugin: "orca_nav2/PurePursuitController3D"
       lookahead_dist: 2.5
+      lookahead_dist: 2.5
       transform_tolerance: 1.0
       goal_tolerance: 0.2 # 0.4? but we are doing a very long strate! pay attention goal stioll needs to be reached!!¨!!!!!!!!!!!!!!!!!
       tick_rate: 20.0
@@ -108,7 +109,7 @@ controller_server:
       # The motion model may be bogus, so actual velocity may be lower or higher than desired
       # velocity. Specify a range using the error terms, e.g.,
       # [(1 - yaw_error_) * yaw_vel_, (1 + yaw_error_) * yaw_vel_]
-      x_error: 0.30 #0.3, 0.35
+      x_error: 0.15 #0.3, 0.35
       yaw_error: 0.15 #0.15, 0.2
       # Tracking topics: 3x Float64 + PointStamped + PoseStamped + TwistStamped (see README)
       publish_tracking_error: true
