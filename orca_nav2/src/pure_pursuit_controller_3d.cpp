@@ -188,6 +188,7 @@ namespace orca_nav2
     // Prevents the AUV releasing rotation too early and then drifting due to residual error.
     double rotate_to_heading_release_angle_{0.2};  // ~11 deg exit threshold
     bool is_rotating_to_path_{false};
+    bool was_rotating_to_path_{false};
 
     // Conservative braking capability used in the sqrt decel formula inside rotateToHeading.
     // Set this to the real AUV angular deceleration (rad/s²), not the command ramp rate.
@@ -525,6 +526,15 @@ namespace orca_nav2
             rotateToHeading(linear_vel, angular_vel, angle_to_curv);
 
           } else {
+            // Edge: rotate→track handoff. The rotation's last commanded ω is
+            // still in prev_vel_.angular.z; with small yaw_accel_·dt the
+            // limiter would carry it into tracking and cause overshoot/sway.
+            // Zero the history so the curvature-driven yaw rate ramps from 0.
+            if (was_rotating_to_path_) {
+              prev_vel_.angular.z = 0.0;
+              prev_vel_.linear.x = 0.0;
+            }
+
             // Normal tracking: forward motion + curvature-based yaw rate.
             linear_vel = x_vel_;
 
@@ -542,6 +552,8 @@ namespace orca_nav2
         cmd_vel.linear.x = linear_vel;
         cmd_vel.angular.z = angular_vel;
       }
+
+      was_rotating_to_path_ = is_rotating_to_path_;
 
       return cmd_vel;
     }
@@ -666,6 +678,8 @@ namespace orca_nav2
       if (arm_cmd_pub_) { arm_cmd_pub_->on_deactivate(); }
       if (mode_cmd_pub_) { mode_cmd_pub_->on_deactivate(); }
       prev_vel_ = geometry_msgs::msg::Twist{};
+      is_rotating_to_path_ = false;
+      was_rotating_to_path_ = false;
     }
 
     // Pose is base_f_odom (3D), Twist comes from /odom but is stripped to 2D
@@ -775,6 +789,7 @@ namespace orca_nav2
       plan_ = plan;
       has_reached_xy_tolerance_ = false;
       is_rotating_to_path_ = false;
+      was_rotating_to_path_ = false;
       prev_vel_ = geometry_msgs::msg::Twist{};
     }
 
