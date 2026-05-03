@@ -93,16 +93,16 @@ controller_server:
     # Controller parameters
     LongStraightLine:
       plugin: "orca_nav2/PurePursuitController3D"
-      lookahead_dist: 3.5
+      lookahead_dist: 2.5
       transform_tolerance: 1.0
       goal_tolerance: 0.2 # 0.4? but we are doing a very long strate! pay attention goal stioll needs to be reached!!¨!!!!!!!!!!!!!!!!!
       tick_rate: 20.0
 
       x_vel: 0.4
-      x_accel: 0.15
-      z_vel: 0.2
-      z_accel: 0.15
-      yaw_vel: 0.35
+      x_accel: 0.3
+      z_vel: 0.3
+      z_accel: 0.2
+      yaw_vel: 0.3
       yaw_accel: 0.15
 
       # The motion model may be bogus, so actual velocity may be lower or higher than desired
@@ -116,7 +116,7 @@ controller_server:
       # Cross-track velocity damping (PD derivative term on lateral error).
       # angular.z -= K_cross_vel * v_cross,  where v_cross = vel.x*sin(yaw_err) + vel.y*cos(yaw_err)
       # Units: (rad/s) / (m/s).  0.0 = disabled.  Conservative starting point: 0.3.
-      K_cross_vel: 0.23 #0.15
+      K_cross_vel: 0.0 #0.15
 
       # Velocity-divergence emergency threshold (rad).
       # If the velocity vector points more than this angle off the path tangent:
@@ -124,7 +124,7 @@ controller_server:
       #   2. Publishes MANUAL on /pixhawk/mode_cmd → manual mode
       #   3. Throws ControllerException            → aborts navigation
       # 0.0 = disabled.  0.785 = 45 deg (strict).  1.05 = 60 deg (more tolerant).
-      max_velocity_divergence_rad: 0.96  # 55 deg — fires symmetrically for both into and away from path
+      max_velocity_divergence_rad: 1.22  # 70 deg — fires symmetrically for both into and away from path
       min_speed_divergence_check: 0.25  # m/s — skip check when nearly stopped
       K_descelerate: 0.5
 
