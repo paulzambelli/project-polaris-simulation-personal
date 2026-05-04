@@ -160,6 +160,7 @@ class MavlinkBridgeReceiver(Node):
         self.declare_parameter("external_odom_quality", 100)
 
         self._external_odom_last_send_ns = 0
+        self._odom_reset_counter = 0
         if self.get_parameter("enable_external_odom").get_parameter_value().bool_value:
             
             self.create_subscription(
@@ -237,15 +238,18 @@ class MavlinkBridgeReceiver(Node):
         if self.pixhawk_mode != "GUIDED":
             return
 
-        # 1. Map ROS ENU (Body) to ArduSub NED (Body)
-        # ROS X (Forward) -> NED X (Surge)
-        # ROS Y (Left)    -> NED Y (Sway) - We set this to 0 if not used
-        # ROS Z (Up)      -> NED Z (Heave) - Flip sign because Z is down in NED
-        surge = float(msg.linear.x)
-        heave = -float(msg.linear.z) 
-        
-        # ROS Angular Z (CCW) -> NED Yaw Rate (CW) - Flip sign
-        yaw_rate = -float(msg.angular.z)
+        # 1. Map ROS FLU body frame -> ArduSub MAV_FRAME_BODY_FRD.
+        # Input convention is REP-103 FLU (matches pure_pursuit_controller_3d):
+        #   +linear.x = forward, +linear.y = left, +linear.z = up,
+        #   +angular.z = yaw CCW (left).
+        # ArduSub 4.5.7 interprets SET_POSITION_TARGET_LOCAL_NED with BODY_FRD
+        # spec-correctly for z (down positive) and yaw (CW positive), but the
+        # x axis is empirically inverted (forward needs negative vx). Verified
+        # in MANUAL that thrusters/AHRS_ORIENTATION are correct, so the surge
+        # flip compensates ArduSub's GUIDED-mode BODY_FRD x-axis specifically.
+        surge    = float(msg.linear.x)   # FLU forward -> negative vx
+        heave    = -float(msg.linear.z)   # FLU up      -> -down (FRD spec)
+        yaw_rate = -float(msg.angular.z)  # FLU CCW     -> -CW   (FRD spec)
 
         # 2. Type mask (ArduSub GCS_MAVLink_Sub.cpp): vel_ignore is true if ANY of
         # MAVLINK_SET_POS_TYPE_MASK_VEL_IGNORE bits (vx,vy,vz) are set Ã¢â‚¬â€ so we must not
@@ -267,7 +271,7 @@ class MavlinkBridgeReceiver(Node):
             0,                                              # time_boot_ms
             self.port.target_system,
             self.port.target_component,
-            mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,      # Frame: Body-Relative
+            mavutil.mavlink.MAV_FRAME_BODY_FRD,      # Frame: Body-Relative
             type_mask,
             0.0, 0.0, 0.0,                                  # Position (ignored)
             surge, 0.0, heave,                              # Velocities (m/s)
@@ -368,62 +372,41 @@ class MavlinkBridgeReceiver(Node):
         # Timestamp from message header in microseconds
         time_usec = (msg.header.stamp.sec * 10**9 + msg.header.stamp.nanosec) // 1000
 
-        # Raw Position: ENU -> NED
-        nx =  msg.pose.pose.position.y
-        ny =  msg.pose.pose.position.x
-        nz = -msg.pose.pose.position.z
+        # Position: ENU → NED
+        x = msg.pose.pose.position.y
+        y = msg.pose.pose.position.x
+        z = -msg.pose.pose.position.z
 
-        # Raw Orientation: ENU/FLU -> NED/FRD
+        # Orientation: apply ENU→NED rotation then express in MAVLink [w,x,y,z] order
+        # q_ENU_to_NED = (w=0, x=√0.5, y=√0.5, z=0)
         _s = math.sqrt(0.5)
         w2 = msg.pose.pose.orientation.w
         x2 = msg.pose.pose.orientation.x
         y2 = msg.pose.pose.orientation.y
         z2 = msg.pose.pose.orientation.z
-        
-        # Step 1: q_tmp = q_ENU_to_NED ⊗ q_ros_flu
+
+
         w1, x1, y1, z1 = 0.0, _s, _s, 0.0
         wt = w1*w2 - x1*x2 - y1*y2 - z1*z2
         xt = w1*x2 + x1*w2 + y1*z2 - z1*y2
         yt = w1*y2 - x1*z2 + y1*w2 + z1*x2
         zt = w1*z2 + x1*y2 - y1*x2 + z1*w2
-        
-        # Step 2: q_ned_frd = q_tmp ⊗ (0, 1, 0, 0)
-        qw = -xt
-        qx =  wt
-        qy =  zt
-        qz = -yt
 
-        # Step 3: Extract ONLY the Yaw component from the NED quaternion
-        yaw = math.atan2(2.0 * (qw*qz + qx*qy), 1.0 - 2.0 * (qy*qy + qz*qz))
+        # Step 2: q_ned_frd = q_tmp (0, 1, 0, 0)  [FLU→FRD: 180° around x]
+        q = [-xt, wt, zt, -yt]
 
-        # Step 4: Rotate the Position into the FRD frame (strip the yaw)
-        cos_y = math.cos(yaw)
-        sin_y = math.sin(yaw)
-        x_lfrd =  nx * cos_y + ny * sin_y
-        y_lfrd = -nx * sin_y + ny * cos_y
-        z_lfrd =  nz
+        """OLD VERSION"""
+        # q = [wt, xt, yt, zt]
 
-        # Step 5: Create a 'Zero-Yaw' version of the orientation (strip the yaw)
-        half_yaw = -yaw / 2.0
-        cp = math.cos(half_yaw)
-        sp = math.sin(half_yaw)
-        
-        q_frd = [
-            cp*qw - sp*qz,
-            cp*qx - sp*qy,
-            cp*qy + sp*qx,
-            cp*qz + sp*qw
-        ]
-
-        # Linear velocity: body FLU -> body FRD
-        vx =  msg.twist.twist.linear.x
+        # Linear velocity: body FLU → body FRD (robot_localization outputs body-frame twist)
+        vx = msg.twist.twist.linear.x
         vy = -msg.twist.twist.linear.y
         vz = -msg.twist.twist.linear.z
 
-        # Angular rates: body FLU -> body FRD
-        rollspeed  =  msg.twist.twist.angular.x
+        # Angular rates: body FLU → body FRD (roll unchanged, pitch and yaw negated)
+        rollspeed = msg.twist.twist.angular.x
         pitchspeed = -msg.twist.twist.angular.y
-        yawspeed   = -msg.twist.twist.angular.z
+        yawspeed = -msg.twist.twist.angular.z
 
         qual = self.get_parameter("external_odom_quality").get_parameter_value().integer_value
         qual = max(-1, min(100, int(qual)))
@@ -431,15 +414,21 @@ class MavlinkBridgeReceiver(Node):
         m = mavutil.mavlink
         self.port.mav.odometry_send(
             time_usec,
-            m.MAV_FRAME_LOCAL_FRD,  # Back to LOCAL_FRD for the EKF bypass
+            m.MAV_FRAME_LOCAL_FRD,
             m.MAV_FRAME_BODY_FRD,
-            x_lfrd, y_lfrd, z_lfrd, # Send the yaw-stripped position
-            q_frd,                  # Send the yaw-stripped orientation
-            vx, vy, vz,
-            rollspeed, pitchspeed, yawspeed,
+            x,
+            y,
+            z,
+            q,
+            vx,
+            vy,
+            vz,
+            rollspeed,
+            pitchspeed,
+            yawspeed,
             nan_pose_covariance(),
             nan_velocity_covariance(),
-            0,
+            self._odom_reset_counter,
             m.MAV_ESTIMATOR_TYPE_VISION,
             qual,
         )
@@ -504,57 +493,6 @@ class MavlinkBridgeReceiver(Node):
             int(pitch),  # s (Extension 1)
             int(roll),  # t (Extension 2)
         )
-
-    def set_origin_from_json(self, json_path: str = 'default_mission_origin.json'):
-        """
-        Loads the GPS origin from a JSON file and sends it to the FCU.
-        This anchors the EKF so GUIDED and POSHOLD modes can function.
-        """
-        try:
-            with open(json_path, 'r') as f:
-                origin_data = json.load(f)
-            
-            # Extract coordinates (update the keys if your JSON uses 'latitude' instead of 'lat')
-            lat = origin_data.get('lat', 46.494536)
-            lon = origin_data.get('lon', 9.856195)
-            alt = origin_data.get('alt', 1822.0)
-
-            # MAVLink requires timestamps in microseconds
-            time_usec = int(time.time() * 1e6)
-
-            # Send the global origin
-            self.port.mav.set_gps_global_origin_send(
-                self.port.target_system,
-                int(lat * 1e7),
-                int(lon * 1e7),
-                int(alt * 1e3),
-                time_usec,
-            )
-
-            # Optional but highly recommended: Send HOME position too
-            # This makes the "H" icon appear correctly in QGroundControl
-            self.port.mav.set_home_position_send(
-                self.port.target_system,
-                int(lat * 1e7),
-                int(lon * 1e7),
-                int(alt * 1e3),
-                0.0, 0.0, 0.0,         # x, y, z local NED (unknown)
-                [1.0, 0.0, 0.0, 0.0],  # quaternion
-                0.0, 0.0, 0.0,         # approach_x, approach_y, approach_z
-                time_usec,
-            )
-
-            self._gps_origin_sent = True
-            self.get_logger().info(
-                f"JSON GPS Origin sent: lat={lat:.7f}, lon={lon:.7f}, alt={alt:.2f}m"
-            )
-            self._file_logger.info(
-                f"JSON GPS Origin sent: lat={lat:.7f}, lon={lon:.7f}, alt={alt:.2f}m"
-            )
-
-        except Exception as e:
-            self.get_logger().error(f"Failed to load GPS origin from {json_path}: {e}")
-            self._file_logger.error(f"Failed to load GPS origin from {json_path}: {e}")
 
     def set_origin_from_json(self, json_path: str = 'default_mission_origin.json'):
         """
