@@ -83,9 +83,10 @@ RUN groupadd --gid $USER_GID $USERNAME \
 USER $USERNAME
 ENV USER=$USERNAME
 
-# Clone ArduSub code
+# Clone Polaris ArduSub fork (pinned)
 WORKDIR /home/$USERNAME
-RUN git clone https://github.com/ArduPilot/ardupilot.git --recurse-submodules
+RUN git clone https://github.com/aris-space/project-polaris-ardusub.git ardupilot --recurse-submodules \
+  && cd ardupilot && git checkout 0a75bdfb8b && git submodule update --init --recursive
 
 # Install ArduSub prereqs (this also appends to .bashrc)
 WORKDIR /home/$USERNAME/ardupilot
