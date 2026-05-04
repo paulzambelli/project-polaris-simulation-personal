@@ -83,7 +83,7 @@
     </plugin>
 
     <link name="thruster1">
-      <pose>@thruster_x -@thruster_y 0 -@d90 @d90 -@d45</pose>
+      <pose>@t1_x @t1_y @t1_z @t1_R @t1_P @t1_Y</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 @d90 0 0</pose>
         <geometry>
@@ -106,7 +106,7 @@
     </link>
 
     <link name="thruster2">
-      <pose>@thruster_x @thruster_y 0 -@d90 @d90 -@d135</pose>
+      <pose>@t2_x @t2_y @t2_z @t2_R @t2_P @t2_Y</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 -@d90 0 0</pose>
         <geometry>
@@ -129,7 +129,7 @@
     </link>
 
     <link name="thruster3">
-      <pose>-@thruster_x -@thruster_y 0 -@d90 @d90 @d45</pose>
+      <pose>@t3_x @t3_y @t3_z @t3_R @t3_P @t3_Y</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 -@d90 0 0</pose>
         <geometry>
@@ -152,7 +152,7 @@
     </link>
 
     <link name="thruster4">
-      <pose>-@thruster_x @thruster_y 0 -@d90 @d90 @d135</pose>
+      <pose>@t4_x @t4_y @t4_z @t4_R @t4_P @t4_Y</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 @d90 0 0</pose>
         <geometry>
@@ -175,7 +175,7 @@
     </link>
 
     <link name="thruster5">
-      <pose>0 -@vert_thruster_y @vert_thruster_z 0 0 0</pose>
+      <pose>@t5_x @t5_y @t5_z @t5_R @t5_P @t5_Y</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 -@d90 0 @d90</pose>
         <geometry>
@@ -198,7 +198,7 @@
     </link>
 
     <link name="thruster6">
-      <pose>0 @vert_thruster_y @vert_thruster_z 0 0 0</pose>
+      <pose>@t6_x @t6_y @t6_z @t6_R @t6_P @t6_Y</pose>
       <visual name="thruster_prop_visual">
         <pose>0 0 0 @d90 0 @d90</pose>
         <geometry>
@@ -297,8 +297,7 @@
         name="gz::sim::systems::Thruster">
       <namespace>orca4</namespace>
       <joint_name>thruster3_joint</joint_name>
-      <!-- Reverse spin to balance torque -->
-      <thrust_coefficient>-@thrust_coefficient</thrust_coefficient>
+      <thrust_coefficient>@thrust_coefficient</thrust_coefficient>
       <fluid_density>@fluid_density</fluid_density>
       <propeller_diameter>@propeller_diameter</propeller_diameter>
       <velocity_control>true</velocity_control>
@@ -310,8 +309,7 @@
         name="gz::sim::systems::Thruster">
       <namespace>orca4</namespace>
       <joint_name>thruster4_joint</joint_name>
-      <!-- Reverse spin to balance torque -->
-      <thrust_coefficient>-@thrust_coefficient</thrust_coefficient>
+      <thrust_coefficient>@thrust_coefficient</thrust_coefficient>
       <fluid_density>@fluid_density</fluid_density>
       <propeller_diameter>@propeller_diameter</propeller_diameter>
       <velocity_control>true</velocity_control>
@@ -335,8 +333,7 @@
         name="gz::sim::systems::Thruster">
       <namespace>orca4</namespace>
       <joint_name>thruster6_joint</joint_name>
-      <!-- Reverse spin to balance torque -->
-      <thrust_coefficient>-@thrust_coefficient</thrust_coefficient>
+      <thrust_coefficient>@thrust_coefficient</thrust_coefficient>
       <fluid_density>@fluid_density</fluid_density>
       <propeller_diameter>@propeller_diameter</propeller_diameter>
       <velocity_control>true</velocity_control>
