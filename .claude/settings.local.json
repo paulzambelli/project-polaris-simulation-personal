@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\pzzsc\\\\Documents\\\\FP_official_Programming\\\\project-polaris-simulation-personal\\\\orca_description\\\\models\\\\orca4\" -File)"
+    ]
+  }
+}

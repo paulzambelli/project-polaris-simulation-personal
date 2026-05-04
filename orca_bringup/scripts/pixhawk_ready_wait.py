@@ -86,12 +86,14 @@ def ensure_armed_and_mode_guided(
     settle_after_arm_sec: float = 1.5,
     settle_after_guided_sec: float = 1.5,
     poll_sec: float = 0.05,
+    max_attempts: int = 4,
 ) -> bool:
     """
-    Fast gate before Nav2: if Pixhawk is not already linkable and armable **now**, return False.
+    Gate before Nav2: confirm Pixhawk is linkable and bring it to ARMED + GUIDED.
 
-    Does **not** block for tens of seconds waiting for SITL to become healthy — one short
-    heartbeat wait, one arm command, one GUIDED command, brief settle each time, then check.
+    After a Ctrl+C of a previous mission ArduSub is mid-disarm-then-MANUAL transition,
+    so a single ARM/GUIDED command may not stick within one settle window. Retry each
+    step up to ``max_attempts`` times before giving up.
 
     ``node`` is unused; kept for call-site compatibility.
     """
@@ -112,27 +114,33 @@ def ensure_armed_and_mode_guided(
         return False
 
     print(
-        f'Heartbeat: mode={state.mode}, armed={int(state.armed)} — attempting once',
+        f'Heartbeat: mode={state.mode}, armed={int(state.armed)}',
         flush=True,
     )
 
-    print('>>> Arming <<<', flush=True)
-    arm_pub.publish(Bool(data=True))
-    _spin_for(executor, settle_after_arm_sec, poll_sec)
+    for i in range(max_attempts):
+        print(f'>>> Arming (attempt {i + 1}/{max_attempts}) <<<', flush=True)
+        arm_pub.publish(Bool(data=True))
+        _spin_for(executor, settle_after_arm_sec, poll_sec)
+        if state.armed:
+            break
     if not state.armed:
         print(
-            f'Not armed; skipping mission.',
+            f'Not armed after {max_attempts} attempts; skipping mission.',
             flush=True,
         )
         return False
     print('Pixhawk reports ARMED.', flush=True)
 
-    print('>>> Setting Pixhawk mode to GUIDED <<<', flush=True)
-    mode_pub.publish(String(data='GUIDED'))
-    _spin_for(executor, settle_after_guided_sec, poll_sec)
+    for i in range(max_attempts):
+        print(f'>>> Setting Pixhawk mode to GUIDED (attempt {i + 1}/{max_attempts}) <<<', flush=True)
+        mode_pub.publish(String(data='GUIDED'))
+        _spin_for(executor, settle_after_guided_sec, poll_sec)
+        if mode_matches(state.mode, 'GUIDED'):
+            break
     if not mode_matches(state.mode, 'GUIDED'):
         print(
-            f'Not in GUIDED; skipping mission.',
+            f'Not in GUIDED after {max_attempts} attempts; skipping mission.',
             flush=True,
         )
         return False
