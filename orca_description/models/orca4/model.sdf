@@ -67,12 +67,12 @@
       <mDotQ>1.5</mDotQ>
       <nDotR>1.5</nDotR>
       <!-- First order stability derivative: -->
-      <xU>0.0</xU>
-      <yV>0.0</yV>
-      <zW>0.0</zW>
-      <kP>0.0</kP>
-      <mQ>0.0</mQ>
-      <nR>0.0</nR>
+      <xU>-17.03899324342189</xU>
+      <yV>-96.541504</yV>
+      <zW>-96.541504</zW>
+      <kP>-34.711552</kP>
+      <mQ>-85.92193856</mQ>
+      <nR>-85.92193856</nR>
       <!-- Second order stability derivative: -->
       <xUabsU>-34.07798648684378</xUabsU>
       <yVabsV>-193.083008</yVabsV>

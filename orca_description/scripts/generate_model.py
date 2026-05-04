@@ -98,14 +98,6 @@ kDotP = _added_mass_roll
 mDotQ = _added_mass_pitch_yaw
 nDotR = _added_mass_pitch_yaw
 
-# Linear damping (not provided on sheet; keep zero)
-xU = 0.0
-yV = 0.0
-zW = 0.0
-kP = 0.0
-mQ = 0.0
-nR = 0.0
-
 # Quadratic damping: slender cylinder, F = 0.5 * rho * Cd * A * |v| * v (plugin uses coeffs
 # on u|u|, etc.; signs negative for dissipative force, matching gz Orca4 convention).
 xUabsU = -0.5 * fluid_density * cd_axial * _area_axial
@@ -115,6 +107,19 @@ zWabsW = yVabsV
 kPabsP = yVabsV * (2.0 * hull_radius / hull_length)
 mQabsQ = -0.25 * fluid_density * cd_cross * hull_radius * hull_length**2
 nRabsR = mQabsQ
+
+# Linear damping: not on the datasheet, but required for low-speed decay (quadratic → 0 as v → 0,
+# so without this the vehicle coasts indefinitely after disarm). Tied to the quadratic terms via a
+# crossover velocity: linear damping dominates below v_cross, quadratic above. Tune v_cross_* if
+# settling looks too sluggish (raise) or too damped (lower).
+v_cross_lin = 0.5  # m/s
+v_cross_ang = 1.0  # rad/s
+xU = xUabsU * v_cross_lin
+yV = yVabsV * v_cross_lin
+zW = zWabsW * v_cross_lin
+kP = kPabsP * v_cross_ang
+mQ = mQabsQ * v_cross_ang
+nR = nRabsR * v_cross_ang
 
 # Thruster placement (Polaris CAD, body frame ≡ CoG, Gazebo FLU: x-fwd, y-port, z-up).
 # Each MOT_n: position (xyz) and orientation (rpy) chosen so that with joint axis
