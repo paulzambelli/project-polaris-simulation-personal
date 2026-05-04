@@ -54,7 +54,7 @@
   </BehaviorTree>
 </root>
 
-<!-- 
+
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="10" name="NavigateRecovery">
