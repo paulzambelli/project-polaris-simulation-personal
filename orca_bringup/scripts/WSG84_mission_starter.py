@@ -16,6 +16,7 @@ import rclpy
 from action_msgs.msg import GoalStatus
 from ament_index_python.packages import get_package_share_directory
 from nav2_msgs.action import FollowWaypoints
+from nav_msgs.msg import Path
 from rclpy.action import ActionClient
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.parameter import Parameter
@@ -71,6 +72,26 @@ def publish_disarm_and_spin(executor, node, arm_pub, spins: int = 30) -> None:
             break
 
 
+def publish_clear_plan_and_spin(executor, node, plan_pub, spins: int = 10) -> None:
+    """Publish an empty Path on /plan so RViz drops the orange line. Tolerant of shutdown."""
+    if plan_pub is None or node is None or executor is None:
+        return
+    try:
+        empty = Path()
+        empty.header.frame_id = 'map'
+        empty.header.stamp = node.get_clock().now().to_msg()
+        plan_pub.publish(empty)
+    except Exception:
+        return
+    for _ in range(spins):
+        if not rclpy.ok():
+            break
+        try:
+            executor.spin_once(timeout_sec=0.05)
+        except Exception:
+            break
+
+
 def default_mission_csv_path() -> str:
     share = get_package_share_directory('orca_bringup')
     return f'{share}/missions/straight_line_mission.csv'
@@ -114,7 +135,7 @@ def wait_for_follow_waypoints(executor, action_client, timeout_sec: float = 300.
 
 
 def send_goal(executor, action_client, send_goal_msg, node, mode_pub, arm_pub,
-              status_pub=None, total_waypoints: int = 0) -> SendGoalResult:
+              status_pub=None, total_waypoints: int = 0, plan_pub=None) -> SendGoalResult:
     goal_handle = None
 
     def feedback_cb(feedback_msg):
@@ -195,6 +216,8 @@ def send_goal(executor, action_client, send_goal_msg, node, mode_pub, arm_pub,
             else:
                 print('Goal canceled')
 
+            publish_clear_plan_and_spin(executor, node, plan_pub, spins=10)
+
             publish_manual_and_spin(executor, node, mode_pub, spins=15)
 
             print('>>> Interrupted, disarming <<<')
@@ -252,6 +275,7 @@ def main() -> None:
     follow_waypoints = None
     mode_pub = None
     arm_pub = None
+    plan_pub = None
     executor = None
 
     try:
@@ -269,6 +293,9 @@ def main() -> None:
         mode_pub = node.create_publisher(String, '/pixhawk/mode_cmd', 10)
         arm_pub = node.create_publisher(Bool, '/pixhawk/arm_cmd', 10)
         status_pub = node.create_publisher(String, '/mission_status', 10)
+        # /plan is owned by Nav2's planner_server; we co-publish an empty Path on cancel/exit
+        # so RViz drops the orange line. RViz subscriber is Reliable, Volatile, depth 5.
+        plan_pub = node.create_publisher(Path, '/plan', 10)
 
         hb_state = PixhawkState()
         node.create_subscription(
@@ -297,11 +324,13 @@ def main() -> None:
             )
             publish_manual_and_spin(executor, node, mode_pub, spins=20)
             publish_disarm_and_spin(executor, node, arm_pub, spins=20)
+            publish_clear_plan_and_spin(executor, node, plan_pub, spins=10)
             sys.exit(1)
 
         print('>>> Executing mission <<<')
         mission_result = send_goal(executor, follow_waypoints, goal, node, mode_pub, arm_pub,
-                                   status_pub=status_pub, total_waypoints=len(goal.poses))
+                                   status_pub=status_pub, total_waypoints=len(goal.poses),
+                                   plan_pub=plan_pub)
 
         if mission_result == SendGoalResult.SUCCESS and rclpy.ok():
             print('>>> Disarming <<<')
@@ -310,16 +339,19 @@ def main() -> None:
             print('>>> Setting Pixhawk mode to MANUAL <<<')
             mode_pub.publish(String(data='MANUAL'))
             rclpy.spin_once(node, timeout_sec=0.2)
+            publish_clear_plan_and_spin(executor, node, plan_pub, spins=10)
         elif mission_result == SendGoalResult.FAILURE and rclpy.ok():
             # Nav2 died mid-mission; attempt best-effort disarm + MANUAL.
             print('>>> Mission aborted; attempting disarm + MANUAL <<<')
             publish_manual_and_spin(executor, node, mode_pub, spins=20)
             publish_disarm_and_spin(executor, node, arm_pub, spins=20)
+            publish_clear_plan_and_spin(executor, node, plan_pub, spins=10)
         elif mission_result == SendGoalResult.CANCELED and rclpy.ok():
-            # send_goal already sent MANUAL + disarm; optional flush if drops occurred.
+            # send_goal already sent MANUAL + disarm + empty /plan; optional flush if drops occurred.
             print('>>> Post-cancel flush (MANUAL + disarm) <<<')
             publish_manual_and_spin(executor, node, mode_pub, spins=15)
             publish_disarm_and_spin(executor, node, arm_pub, spins=20)
+            publish_clear_plan_and_spin(executor, node, plan_pub, spins=10)
 
         print('>>> Mission complete <<<')
 
@@ -332,6 +364,8 @@ def main() -> None:
             if arm_pub is not None:
                 print('>>> Interrupted, disarming <<<')
                 publish_disarm_and_spin(executor, node, arm_pub)
+            if plan_pub is not None:
+                publish_clear_plan_and_spin(executor, node, plan_pub)
 
     finally:
         if follow_waypoints is not None:

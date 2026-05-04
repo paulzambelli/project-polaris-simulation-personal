@@ -94,6 +94,7 @@ controller_server:
     LongStraightLine:
       plugin: "orca_nav2/PurePursuitController3D"
       lookahead_dist: 2.5
+      lookahead_dist: 2.5
       transform_tolerance: 1.0
       goal_tolerance: 0.2
       tick_rate: 20.0
