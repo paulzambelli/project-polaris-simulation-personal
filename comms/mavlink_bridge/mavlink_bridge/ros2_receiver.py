@@ -127,6 +127,15 @@ class MavlinkBridgeReceiver(Node):
             SUB_QOS_DEPTH,
         )
 
+        # cmd_vel watchdog: ArduSub's GUIDED controller holds the last commanded
+        # velocity until GUID_TIMEOUT (~3 s) elapses. We override that here: if
+        # no cmd_vel arrives within 0.3 s, send one zero-velocity setpoint so the
+        # sub stops within ~0.4 s of the upstream publisher going silent.
+        self._CMD_VEL_TIMEOUT_S = 0.3
+        self._cmd_vel_last_msg_t = 0.0
+        self._cmd_vel_was_active = False
+        self._cmd_vel_watchdog = self.create_timer(0.1, self._cmd_vel_watchdog_cb)
+
         # subscribe to the pixhawk/mode_cmd topic and calls mode_selection_cb
         self.mode_selection_subscriber = self.create_subscription(
             String, "/pixhawk/mode_cmd", self.mode_selection_cb, SUB_QOS_DEPTH
@@ -279,6 +288,49 @@ class MavlinkBridgeReceiver(Node):
             0.0,                                            # Yaw Angle (ignored)
             yaw_rate                                        # Yaw Rate (rad/s)
         )
+
+        # Refresh watchdog: arms the timeout zero-send when cmd_vel goes silent.
+        self._cmd_vel_last_msg_t = self.get_clock().now().nanoseconds * 1e-9
+        self._cmd_vel_was_active = True
+
+    def _cmd_vel_watchdog_cb(self):
+        """If no /pixhawk/cmd_vel arrives within _CMD_VEL_TIMEOUT_S, send one
+        zero-velocity setpoint. Re-arms automatically when cmd_vel resumes.
+        Bypasses ArduSub's ~3 s GUID_TIMEOUT so the sub stops within ~0.4 s
+        of the upstream publisher going silent (Ctrl+C, controller crash,
+        mode change, mission completion)."""
+        if not self._cmd_vel_was_active:
+            return
+        if self.pixhawk_mode != "GUIDED":
+            self._cmd_vel_was_active = False
+            return
+        now = self.get_clock().now().nanoseconds * 1e-9
+        if now - self._cmd_vel_last_msg_t < self._CMD_VEL_TIMEOUT_S:
+            return
+        m = mavutil.mavlink
+        type_mask = (
+            m.POSITION_TARGET_TYPEMASK_X_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_Y_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_Z_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_AX_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_AY_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_AZ_IGNORE
+            | m.POSITION_TARGET_TYPEMASK_YAW_IGNORE
+        )
+        self.port.mav.set_position_target_local_ned_send(
+            0,
+            self.port.target_system,
+            self.port.target_component,
+            m.MAV_FRAME_BODY_FRD,
+            type_mask,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            0.0,
+            0.0,
+        )
+        self._cmd_vel_was_active = False
+        self.get_logger().info("cmd_vel watchdog: timeout, sent zero-velocity setpoint")
 
     def arm_disarm_cb(self, msg):
         """
