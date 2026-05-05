@@ -6,7 +6,7 @@
 -->
 
 <!-- This is the behvaiour Tree for only tuning Regulated & PurePursuiteontroller!!! -->
-<!-- <root main_tree_to_execute="MainTree">
+<root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="10" name="NavigateRecovery">
       
@@ -25,9 +25,9 @@
       
     </RecoveryNode>
   </BehaviorTree>
-</root> -->
+</root>
 
-<root main_tree_to_execute="MainTree">
+<!-- <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="10" name="NavigateRecovery">
       
@@ -51,7 +51,7 @@
       
     </RecoveryNode>
   </BehaviorTree>
-</root>
+</root> -->
 
 
 <!-- <root main_tree_to_execute="MainTree">
