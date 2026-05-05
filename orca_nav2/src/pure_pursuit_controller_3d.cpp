@@ -495,13 +495,13 @@ namespace orca_nav2
 
       geometry_msgs::msg::Twist cmd_vel;
 
-      // ── Depth control (linear.z) — completely unchanged ────────────────────
+      // Depth control (linear.z)
       if (z_dist > goal_tolerance_) {
         cmd_vel.linear.z = goal_f_base.pose.position.z > 0 ? z_vel_ : -z_vel_;
         z_limiter_.decelerate(cmd_vel.linear.z, goal_f_base.pose.position.z);
       }
 
-      // ── XY control (linear.x + angular.z) — Regulated PP ──────────────────
+      //  XY control (linear.x + angular.z) — Regulated PP
       //
       // shouldRotateToGoalHeading is checked BEFORE the xy_dist guard so that
       // with stateful_ = true we can still rotate to the final heading even when

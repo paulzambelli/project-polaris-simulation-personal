@@ -122,7 +122,7 @@ controller_server:
       min_speed_divergence_check: 0.25  # m/s — skip check when nearly stopped
 
       # Breaking
-      K_descelerate: 0.3
+      K_descelerate: 0.1
 
       # ── Regulated Pure Pursuit ──────────────────────────────────────────────
       # Rotate-to-heading: stop translating and rotate in place when the heading
@@ -140,7 +140,7 @@ controller_server:
 
       # Stateful goal heading: once within XY goal tolerance, stay in heading-align
       # mode even if the robot drifts slightly back out of tolerance.
-      stateful: true
+      stateful: false
 
       # Velocity-scaled lookahead: lookahead = speed * lookahead_time (clamped).
       # Keep false until basic heading behaviour is confirmed good.
@@ -161,8 +161,8 @@ controller_server:
       regulated_linear_scaling_min_speed: 0.05
 
       # Approach velocity: ramp forward speed down over the last N metres to goal.
-      min_approach_linear_velocity: 0.05
-      approach_velocity_scaling_dist: 1.0
+      min_approach_linear_velocity: 0.0
+      approach_velocity_scaling_dist: 5.0
 
     SharpTurn:
       plugin: "orca_nav2/SharpTurnController3D"
@@ -245,7 +245,7 @@ planner_server:
       plugin: "orca_nav2/StraightLinePlanner3D"
       planning_dist: 0.05    # Plan a pose every planning_dist meters
       # Fpr step reponse - NOT To BE MERGED into dev!!
-      use_fixed_start: true # Set true for step response tests
+      use_fixed_start: false # Set true for step response tests
       fixed_start_x: 0.0    # X of ideal path start in map frame (lon direction)
       fixed_start_y: 0.0    # Y of ideal path start in map frame (lat direction)
 
@@ -290,4 +290,4 @@ waypoint_follower:
     wait_at_waypoint:
       plugin: "nav2_waypoint_follower::WaitAtWaypoint"
       enabled: True
-      waypoint_pause_duration: 2000   # Sleep for 2000ms
+      waypoint_pause_duration: 1250   # Sleep for 2000ms
