@@ -250,7 +250,7 @@ planner_server:
       plugin: "orca_nav2/StraightLinePlanner3D"
       planning_dist: 0.05    # Plan a pose every planning_dist meters
       # Fpr step reponse - NOT To BE MERGED into dev!!
-      use_fixed_start: true # Set true for step response tests
+      use_fixed_start: false # Set true for step response tests
       fixed_start_x: 0.0    # X of ideal path start in map frame (lon direction)
       fixed_start_y: 0.0    # Y of ideal path start in map frame (lat direction)
 

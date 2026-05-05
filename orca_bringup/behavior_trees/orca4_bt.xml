@@ -6,7 +6,7 @@
 -->
 
 <!-- This is the behvaiour Tree for only tuning Regulated & PurePursuiteontroller!!! -->
-<root main_tree_to_execute="MainTree">
+<!-- <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="10" name="NavigateRecovery">
       
@@ -25,32 +25,9 @@
       
     </RecoveryNode>
   </BehaviorTree>
-</root>
+</root> -->
 
-<!-- <root main_tree_to_execute="MainTree">
-  <BehaviorTree ID="MainTree">
-    <RecoveryNode number_of_retries="10" name="NavigateRecovery">
-      
-      <PipelineSequence name="NavigateWithReplanning">
-        
-        <RateController hz="0.33"> 
-            <ComputePathToPose goal="{goal}" path="{path}" planner_id="StraightLine"/>
-        </RateController>
-        
-        <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>
-      
-      </PipelineSequence>
-      
-      <ReactiveFallback name="RecoveryFallback">
-        <GoalUpdated/>
-        <Wait wait_duration="2"/>
-      </ReactiveFallback>
-      
-    </RecoveryNode>
-  </BehaviorTree>
-</root>  -->
-
-<!-- <root main_tree_to_execute="MainTree">
+<root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="10" name="NavigateRecovery">
       
@@ -58,7 +35,7 @@
         
         <RateController hz="1.0"> 
           <Fallback>
-            <IsStraightPathValid path="{path}" max_dist="1.5" goal="{goal}"/>
+            <IsStraightPathValid path="{path}" max_dist="0.9" goal="{goal}"/>
             <ComputePathToPose goal="{goal}" path="{path}" planner_id="StraightLine"/>
           </Fallback>
         </RateController>
@@ -74,7 +51,7 @@
       
     </RecoveryNode>
   </BehaviorTree>
-</root> -->
+</root>
 
 
 <!-- <root main_tree_to_execute="MainTree">
