@@ -118,9 +118,10 @@ controller_server:
       #   1. Publishes False  on /pixhawk/arm_cmd  → disarm
       #   2. Publishes MANUAL on /pixhawk/mode_cmd → manual mode
       #   3. Throws ControllerException            → aborts navigation
-      # 0.0 = disabled.  0.785 = 45 deg (strict).  1.05 = 60 deg (more tolerant).
       max_velocity_divergence_rad: 1.22  # 70 deg — fires symmetrically for both into and away from path
       min_speed_divergence_check: 0.25  # m/s — skip check when nearly stopped
+
+      # Breaking
       K_descelerate: 0.3
 
       # ── Regulated Pure Pursuit ──────────────────────────────────────────────
@@ -130,7 +131,7 @@ controller_server:
       # to prevent premature exit and the cross-track drift that follows.
       use_rotate_to_heading: true
       rotate_to_heading_angular_vel: 0.2  # rad/s — max rotation speed
-      rotate_to_heading_min_angle: 1.22    # rad (70 deg) — only rotate-in-place for sharp turns; 45° inter-segment handled by PP curvature
+      rotate_to_heading_min_angle: 1.22    # rad (70 deg) — only rotate-in-place for sharp turns
       rotate_to_heading_release_angle: 0.1 # rad (~3 deg) — MUST be < v²/(2*decel) = 0.1²/(2*0.05) = 0.1 rad
       # Real AUV angular braking capability (rad/s²) — used in sqrt decel formula.
       # Much lower than yaw_accel (ramp rate) because water drag limits actual decel.
@@ -146,7 +147,7 @@ controller_server:
       use_velocity_scaled_lookahead: false
       min_lookahead_dist: 1.25
       max_lookahead_dist: 2.5
-      lookahead_time: 3.0
+      lookahead_time: 6.25
 
       # Fixed curvature lookahead: measure curvature at this fixed distance regardless
       # of the main lookahead. Breaks the slow→short lookahead→high curvature feedback loop.
