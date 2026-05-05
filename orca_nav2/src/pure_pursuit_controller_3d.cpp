@@ -125,9 +125,6 @@ namespace orca_nav2
     nav_msgs::msg::Path plan_;
     geometry_msgs::msg::Twist prev_vel_{};
 
-    double x_error_{};
-    double yaw_error_{};
-
     // Cross-track velocity damping
     double K_cross_vel_{0.0};
 
@@ -585,8 +582,6 @@ namespace orca_nav2
       PARAMETER(parent, name, transform_tolerance, 1.0)
       PARAMETER(parent, name, goal_tolerance, 0.1)
       PARAMETER(parent, name, tick_rate, 20.0)
-      PARAMETER(parent, name, x_error, 0.0)
-      PARAMETER(parent, name, yaw_error, 0.0)
       PARAMETER(parent, name, publish_tracking_error, true)
       PARAMETER(parent, name, K_cross_vel, 0.0)
       PARAMETER(parent, name, max_velocity_divergence_rad, 0.0)
