@@ -5,6 +5,28 @@
   Starting point: navigate_w_replanning_and_recovery.xml
 -->
 
+<!-- This is the behvaiour Tree for only tuning Regulated & PurePursuiteontroller!!! -->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="10" name="NavigateRecovery">
+      
+      <PipelineSequence name="NavigateWithReplanning">
+        
+        <ComputePathToPose goal="{goal}" path="{path}" planner_id="StraightLine"/>
+
+        <FollowPath path="{path}" controller_id="LongStraightLine" goal_checker_id="goal_checker"/>               
+      
+      </PipelineSequence>
+      
+      <ReactiveFallback name="RecoveryFallback">
+        <GoalUpdated/>
+        <Wait wait_duration="3"/>
+      </ReactiveFallback>
+      
+    </RecoveryNode>
+  </BehaviorTree>
+</root>
+
 <!-- <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="10" name="NavigateRecovery">
@@ -28,7 +50,7 @@
   </BehaviorTree>
 </root>  -->
 
-<root main_tree_to_execute="MainTree">
+<!-- <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="10" name="NavigateRecovery">
       
@@ -52,7 +74,7 @@
       
     </RecoveryNode>
   </BehaviorTree>
-</root>
+</root> -->
 
 
 <!-- <root main_tree_to_execute="MainTree">
