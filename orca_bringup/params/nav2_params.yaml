@@ -122,7 +122,7 @@ controller_server:
       min_speed_divergence_check: 0.25  # m/s — skip check when nearly stopped
 
       # Breaking
-      K_descelerate: 0.1
+      K_descelerate: 0.17
 
       # ── Regulated Pure Pursuit ──────────────────────────────────────────────
       # Rotate-to-heading: stop translating and rotate in place when the heading
