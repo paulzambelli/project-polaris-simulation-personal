@@ -11,7 +11,7 @@ ros2 run orca_bringup WSG84_mission_starter.py
 ## Start current in m/s
 `/orca_bringup/scripts/current_vector_node.py`
 ```bash
-ros2 run orca_bringup current_vector_node.py --ros-args -p direction:="con_xy" -p amplitude:=0.2 -p period:=15.0 -p noise_stddev:=0.1 -p noise_time_constant:=1.5
+ros2 run orca_bringup current_vector_node.py --ros-args -p direction:="con_xy" -p amplitude:=-0.08 -p period:=15.0 -p noise_stddev:=0.1 -p noise_time_constant:=2.5
 
 ros2 run orca_bringup current_vector_node.py --ros-args -p direction:="dir_x, xy, con_xy, ramp_xyz" -p amplitude:=0.5 -p period:=15.0 -p noise_stddev:=0.1 -p noise_time_constant:=1.5
 ```
