@@ -88,14 +88,14 @@ controller_server:
     goal_checker:
       plugin: "orca_nav2/GoalChecker3D"
       xy_goal_tolerance: 0.8
-      z_goal_tolerance: 0.25
+      z_goal_tolerance: 100.0
 
     # Controller parameters
     LongStraightLine:
       plugin: "orca_nav2/PurePursuitController3D"
       lookahead_dist: 2.5
       transform_tolerance: 1.0
-      goal_tolerance: 0.2
+      goal_tolerance: 0.8
       tick_rate: 20.0
 
       x_vel: 0.4
@@ -167,7 +167,7 @@ controller_server:
       plugin: "orca_nav2/SharpTurnController3D"
       lookahead_dist: 1.0
       transform_tolerance: 1.0
-      goal_tolerance: 0.2
+      goal_tolerance: 0.8
       tick_rate: 20.0
       
       z_vel: 0.3

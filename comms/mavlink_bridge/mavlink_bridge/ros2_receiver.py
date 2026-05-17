@@ -258,6 +258,7 @@ class MavlinkBridgeReceiver(Node):
         # flip compensates ArduSub's GUIDED-mode BODY_FRD x-axis specifically.
         surge    = float(msg.linear.x)   # FLU forward -> negative vx
         heave    = -float(msg.linear.z)   # FLU up      -> -down (FRD spec)
+        heave =  0 
         yaw_rate = -float(msg.angular.z)  # FLU CCW     -> -CW   (FRD spec)
 
         # 2. Type mask (ArduSub GCS_MAVLink_Sub.cpp): vel_ignore is true if ANY of
