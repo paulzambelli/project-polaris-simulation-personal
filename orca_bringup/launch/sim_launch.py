@@ -111,7 +111,8 @@ def generate_launch_description():
             description='Launch rviz?',
         ),
 
-        # Bag PurePursuitController3D tracking: errors + pose/closest/twist (same publish_tracking_error gate).
+        # Bag PurePursuitController3D tracking: errors + pose/closest/twist (same publish_tracking_error gate)
+        # plus /ocean_current (geometry_msgs/Vector3) from Gazebo bridge or current_vector_node.
         ExecuteProcess(
             cmd=[
                 'ros2', 'bag', 'record',
@@ -121,15 +122,39 @@ def generate_launch_description():
                 '/pure_pursuit_closest_point_map',
                 '/pure_pursuit_robot_pose_map',
                 '/pure_pursuit_robot_twist',
+                '/ocean_current',
             ],
             output='screen',
+            sigterm_timeout='10',
+            sigkill_timeout='5',
             condition=IfCondition(LaunchConfiguration('bag')),
+        ),
+
+        # One explicit /ocean_current = (0,0,0) for bags: marks a baseline time in the log for
+        # later comparison (CSV wide merge sees a real zero once bridge/record are up). Delay so
+        # ros2 bag record is already subscribed.
+        TimerAction(
+            period=5.0,
+            actions=[
+                ExecuteProcess(
+                    cmd=[
+                        'ros2', 'topic', 'pub', '--once',
+                        '--qos-durability', 'transient_local',
+                        '/ocean_current', 'geometry_msgs/msg/Vector3',
+                        '{x: 0.0, y: 0.0, z: 0.0}',
+                    ],
+                    output='log',
+                    condition=IfCondition(LaunchConfiguration('bag')),
+                ),
+            ],
         ),
 
         # Launch rviz
         ExecuteProcess(
             cmd=['rviz2', '-d', rviz_file],
             output='screen',
+            sigterm_timeout='5',
+            sigkill_timeout='5',
             condition=IfCondition(LaunchConfiguration('rviz')),
         ),
 
@@ -143,6 +168,8 @@ def generate_launch_description():
                 '-I0', '--home', ardusub_home,
             ],
             output='screen',
+            sigterm_timeout='15',
+            sigkill_timeout='5',
             condition=IfCondition(LaunchConfiguration('ardusub')),
         ),
 
@@ -152,6 +179,8 @@ def generate_launch_description():
         ExecuteProcess(
             cmd=['gz', 'sim', '-v', '3', '-r', world_file],
             output='screen',
+            sigterm_timeout='15',
+            sigkill_timeout='5',
             condition=IfCondition(LaunchConfiguration('gzclient')),
         ),
 
@@ -159,6 +188,8 @@ def generate_launch_description():
         ExecuteProcess(
             cmd=['gz', 'sim', '-v', '3', '-r', '-s', world_file],
             output='screen',
+            sigterm_timeout='15',
+            sigkill_timeout='5',
             condition=UnlessCondition(LaunchConfiguration('gzclient')),
         ),
 
@@ -172,7 +203,7 @@ def generate_launch_description():
             arguments=[
                 '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
                 '/model/orca4/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
-                '/ocean_current@geometry_msgs/msg/Vector3]gz.msgs.Vector3d', # TODO: perhaps use Vector3D
+                '/ocean_current@geometry_msgs/msg/Vector3]gz.msgs.Vector3d',
             ],
             remappings=[
                 ('/model/orca4/odometry', '/odom'),
@@ -183,7 +214,10 @@ def generate_launch_description():
         Node(
             package='orca_base',
             executable='odom_to_path_node',
-            output='screen'
+            output='screen',
+            parameters=[{
+                'max_poses': 5000,
+            }],
         ),
 
         # In sim-only mode, publish odom -> base_link from Gazebo odometry.

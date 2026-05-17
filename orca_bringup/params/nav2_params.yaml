@@ -5,37 +5,46 @@ bt_navigator:
     use_sim_time: True
     global_frame: "map"
     robot_base_frame: "base_link"
+    transform_tolerance: 1.0
     odom_topic: "/odom"
     bt_loop_duration: 10
     default_server_timeout: 20
     default_nav_to_pose_bt_xml: "bringup.py should replace me"
 
-    # Nav2 gets mad if we don't load most (all?) of these plugins, even though they are not used
+    # Keep in sync with ros-humble-nav2-bringup nav2_params.yaml plugin_lib_names, plus Orca BT nodes.
     plugin_lib_names:
       - nav2_compute_path_to_pose_action_bt_node
       - nav2_compute_path_through_poses_action_bt_node
+      - nav2_smooth_path_action_bt_node
       - nav2_follow_path_action_bt_node
-      - nav2_back_up_action_bt_node
       - nav2_spin_action_bt_node
       - nav2_wait_action_bt_node
+      - nav2_assisted_teleop_action_bt_node
+      - nav2_back_up_action_bt_node
+      - nav2_drive_on_heading_bt_node
       - nav2_clear_costmap_service_bt_node
       - nav2_is_stuck_condition_bt_node
       - nav2_goal_reached_condition_bt_node
       - nav2_goal_updated_condition_bt_node
+      - nav2_globally_updated_goal_condition_bt_node
+      - nav2_is_path_valid_condition_bt_node
       - nav2_initial_pose_received_condition_bt_node
       - nav2_reinitialize_global_localization_service_bt_node
       - nav2_rate_controller_bt_node
       - nav2_distance_controller_bt_node
       - nav2_speed_controller_bt_node
       - nav2_truncate_path_action_bt_node
+      - nav2_truncate_path_local_action_bt_node
       - nav2_goal_updater_node_bt_node
       - nav2_recovery_node_bt_node
       - nav2_pipeline_sequence_bt_node
       - nav2_round_robin_node_bt_node
       - nav2_transform_available_condition_bt_node
       - nav2_time_expired_condition_bt_node
+      - nav2_path_expiring_timer_condition
       - nav2_distance_traveled_condition_bt_node
       - nav2_single_trigger_bt_node
+      - nav2_goal_updated_controller_bt_node
       - nav2_is_battery_low_condition_bt_node
       - nav2_navigate_through_poses_action_bt_node
       - nav2_navigate_to_pose_action_bt_node
@@ -43,6 +52,16 @@ bt_navigator:
       - nav2_planner_selector_bt_node
       - nav2_controller_selector_bt_node
       - nav2_goal_checker_selector_bt_node
+      - nav2_controller_cancel_bt_node
+      - nav2_path_longer_on_approach_bt_node
+      - nav2_wait_cancel_bt_node
+      - nav2_spin_cancel_bt_node
+      - nav2_back_up_cancel_bt_node
+      - nav2_assisted_teleop_cancel_bt_node
+      - nav2_drive_on_heading_cancel_bt_node
+      - nav2_is_battery_charging_condition_bt_node
+      - is_path_valid_check
+      - is_sharp_turn_check
 
 bt_navigator_rclcpp_node:
   ros__parameters:
@@ -56,8 +75,8 @@ controller_server:
     min_y_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
     progress_checker_plugins: ["progress_checker"]
-    goal_checker_plugins: ["goal_checker"]
-    controller_plugins: ["LongStraightLine"]
+    goal_checker_plugins: ["goal_checker"] # also here different checker?
+    controller_plugins: ["LongStraightLine", "SharpTurn"]
 
     # Progress checker parameters
     progress_checker:
@@ -68,30 +87,66 @@ controller_server:
     # Goal checker parameters
     goal_checker:
       plugin: "orca_nav2/GoalChecker3D"
-      xy_goal_tolerance: 0.8
-      z_goal_tolerance: 0.5
+      xy_goal_tolerance: 0.3
+      z_goal_tolerance: 0.25
 
     # Controller parameters
     LongStraightLine:
       plugin: "orca_nav2/PurePursuitController3D"
-      lookahead_dist: 1.0
+      lookahead_dist: 2.5
+      lookahead_dist: 2.5
       transform_tolerance: 1.0
-      goal_tolerance: 0.2
-      tick_rate: 20.0  # Loop rate, must match controller_frequency
+      goal_tolerance: 0.2 # 0.4? but we are doing a very long strate! pay attention goal stioll needs to be reached!!¨!!!!!!!!!!!!!!!!!
+      tick_rate: 20.0
 
-      # Desired velocities and accelerations
       x_vel: 0.4
-      x_accel: 0.4
+      x_accel: 0.3
       z_vel: 0.3
-      z_accel: 0.3
-      yaw_vel: 0.25
-      yaw_accel: 0.5
+      z_accel: 0.2
+      yaw_vel: 0.3
+      yaw_accel: 0.15
 
       # The motion model may be bogus, so actual velocity may be lower or higher than desired
       # velocity. Specify a range using the error terms, e.g.,
       # [(1 - yaw_error_) * yaw_vel_, (1 + yaw_error_) * yaw_vel_]
-      x_error: 0.5
-      yaw_error: 0.6
+      x_error: 0.15 #0.3, 0.35
+      yaw_error: 0.15 #0.15, 0.2
+      # Tracking topics: 3x Float64 + PointStamped + PoseStamped + TwistStamped (see README)
+      publish_tracking_error: true
+
+      # Cross-track velocity damping (PD derivative term on lateral error).
+      # angular.z -= K_cross_vel * v_cross,  where v_cross = vel.x*sin(yaw_err) + vel.y*cos(yaw_err)
+      # Units: (rad/s) / (m/s).  0.0 = disabled.  Conservative starting point: 0.3.
+      K_cross_vel: 0.0 #0.15
+
+      # Velocity-divergence emergency threshold (rad).
+      # If the velocity vector points more than this angle off the path tangent:
+      #   1. Publishes False  on /pixhawk/arm_cmd  → disarm
+      #   2. Publishes MANUAL on /pixhawk/mode_cmd → manual mode
+      #   3. Throws ControllerException            → aborts navigation
+      # 0.0 = disabled.  0.785 = 45 deg (strict).  1.05 = 60 deg (more tolerant).
+      max_velocity_divergence_rad: 1.22  # 70 deg — fires symmetrically for both into and away from path
+      min_speed_divergence_check: 0.25  # m/s — skip check when nearly stopped
+      K_descelerate: 0.5
+
+    SharpTurn:
+      plugin: "orca_nav2/SharpTurnController3D"
+      lookahead_dist: 1.0
+      transform_tolerance: 1.0
+      goal_tolerance: 0.2
+      tick_rate: 20.0
+      
+      z_vel: 0.3
+      z_accel: 0.3
+      yaw_vel: 0.25
+      yaw_accel: 0.5
+      yaw_P_gain: 0.02 # TODO: Very small
+
+      # The motion model may be bogus, so actual velocity may be lower or higher than desired
+      # velocity. Specify a range using the error terms, e.g.,
+      # [(1 - yaw_error_) * yaw_vel_, (1 + yaw_error_) * yaw_vel_]
+      # x_error: 0.5
+      # yaw_error: 0.6
       # Tracking topics: 3x Float64 + PointStamped + PoseStamped + TwistStamped (see README)
       publish_tracking_error: true
 
@@ -153,7 +208,8 @@ planner_server:
     # OrcaPlanner parameters
     StraightLine:
       plugin: "orca_nav2/StraightLinePlanner3D"
-      planning_dist: 0.1  # Plan a pose every planning_dist meters
+      planning_dist: 0.1    # Plan a pose every planning_dist meters
+
 
 planner_server_rclcpp_node:
   ros__parameters:
