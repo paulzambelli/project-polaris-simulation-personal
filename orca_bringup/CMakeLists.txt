@@ -22,6 +22,7 @@ install(
   scripts/current_vector_node.py
   scripts/odom_to_tf.py
   scripts/WSG84_mission_starter.py
+  scripts/cmd_vel_ramp.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
