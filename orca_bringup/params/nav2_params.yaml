@@ -159,9 +159,9 @@ controller_server:
 
       # Approach velocity: ramp forward speed down over the last N metres to goal.
       min_approach_linear_velocity: 0.0
-      approach_velocity_scaling_dist: 3.25
+      approach_velocity_scaling_dist: 3.75
       # Breaking
-      K_descelerate: 0.35
+      K_descelerate: 0.9 #0.35
 
     SharpTurn:
       plugin: "orca_nav2/SharpTurnController3D"
