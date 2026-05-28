@@ -99,7 +99,7 @@ Toggle with `publish_tracking_error` in [`params/nav2_params.yaml`](params/nav2_
 
 5. **Find the bag** (created under the directory where you ran `ros2 launch`, usually `~/colcon_ws`):
    ```bash
-   ls -lt (~/colcon_ws)
+   ls -lt (~/colcon_ws) 
    ```
    Look for `rosbag2_YYYY_MM_DD-HH_MM_SS` with `metadata.yaml` inside.
 
@@ -137,7 +137,7 @@ Toggle with `publish_tracking_error` in [`params/nav2_params.yaml`](params/nav2_
 
 3. **Copy the `csv_export` folder** (adjust bag name to match yours):
    ```bash
-   docker cp orca4:/home/orca4/colcon_ws/rosbag2_2026_03_28-18_07_19/csv_export \
+   docker cp orca4:/home/orca4/colcon_ws/rosbag2_2026_05_28-14_53_58/csv_export \
      ~/Downloads/orca_tracking_csv_export_NAME
    ```
    Or into your host project:

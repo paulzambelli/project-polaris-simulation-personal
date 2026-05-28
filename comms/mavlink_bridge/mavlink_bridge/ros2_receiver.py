@@ -259,7 +259,7 @@ class MavlinkBridgeReceiver(Node):
         # Deadband: thrusters can't produce sub-threshold commands, so zero them
         # out to avoid jitter / integrator wind-up in the ArduSub low-level loop.
         LIN_DEADBAND = 0.01   # m/s
-        ANG_DEADBAND = 0.007   # rad/s
+        ANG_DEADBAND = 0.015   # rad/s
         lx = float(msg.linear.x)  if abs(msg.linear.x)  >= LIN_DEADBAND else 0.0
         lz = float(msg.linear.z)  if abs(msg.linear.z)  >= LIN_DEADBAND else 0.0
         az = float(msg.angular.z) if abs(msg.angular.z) >= ANG_DEADBAND else 0.0
