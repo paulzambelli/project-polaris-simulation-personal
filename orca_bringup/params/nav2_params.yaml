@@ -93,7 +93,7 @@ controller_server:
     # Controller parameters
     LongStraightLine:
       plugin: "orca_nav2/PurePursuitController3D"
-      lookahead_dist: 2.2
+      lookahead_dist: 1.7 #2.1
       transform_tolerance: 1.0
       goal_tolerance: 0.15
       tick_rate: 20.0
@@ -149,7 +149,7 @@ controller_server:
       # Fixed curvature lookahead: measure curvature at this fixed distance regardless
       # of the main lookahead. Breaks the slow→short lookahead→high curvature feedback loop.
       use_fixed_curvature_lookahead: true
-      curvature_lookahead_dist: 2.2  # m — matched to lookahead_dist
+      curvature_lookahead_dist: 1.7 #2.1  # m — matched to lookahead_dist
 
       # Curvature-regulated linear velocity: scale forward speed down when the turning
       # radius falls below regulated_linear_scaling_min_radius.
