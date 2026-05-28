@@ -88,7 +88,7 @@ controller_server:
     goal_checker:
       plugin: "orca_nav2/GoalChecker3D"
       xy_goal_tolerance: 0.8
-      z_goal_tolerance: 0.25
+      z_goal_tolerance: 0.4
 
     # Controller parameters
     LongStraightLine:
@@ -127,13 +127,13 @@ controller_server:
       # Hysteresis: engages at min_angle, releases only at the smaller release_angle
       # to prevent premature exit and the cross-track drift that follows.
       use_rotate_to_heading: true
-      rotate_to_heading_angular_vel: 0.2  # rad/s — max rotation speed
+      rotate_to_heading_angular_vel: 0.3  # rad/s — max rotation speed
       rotate_to_heading_min_angle: 1.22    # rad (70 deg) — only rotate-in-place for sharp turns
-      rotate_to_heading_release_angle: 0.1 # rad (~3 deg) — MUST be < v²/(2*decel) = 0.1²/(2*0.05) = 0.1 rad
+      rotate_to_heading_release_angle: 0.5 #0.1 # rad (~3 deg) — MUST be < v²/(2*decel) = 0.1²/(2*0.05) = 0.1 rad
       # Real AUV angular braking capability (rad/s²) — used in sqrt decel formula.
       # Much lower than yaw_accel (ramp rate) because water drag limits actual decel.
       # Braking starts at dist = v²/(2*decel) from target. With v=0.1, decel=0.05 → 0.1 rad.
-      rotate_to_heading_decel: 0.05
+      rotate_to_heading_decel: 0.15 #0.05
 
       # Stateful goal heading: once within XY goal tolerance, stay in heading-align
       # mode even if the robot drifts slightly back out of tolerance.
@@ -159,9 +159,9 @@ controller_server:
 
       # Approach velocity: ramp forward speed down over the last N metres to goal.
       min_approach_linear_velocity: 0.0
-      approach_velocity_scaling_dist: 3.25
+      approach_velocity_scaling_dist: 3.5
       # Breaking
-      K_descelerate: 0.35
+      K_descelerate: 2.0 #1.5 #0.9 #0.35
 
     SharpTurn:
       plugin: "orca_nav2/SharpTurnController3D"
